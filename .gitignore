@@ -7,10 +7,23 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
+# Dependency
 node_modules
+
+# Build
 dist
 dist-ssr
+
+# Env
+.env
+.env.*
+!.env.example
+
+# Local
 *.local
+
+# OS
+Thumbs.db
 
 # Editor directories and files
 .vscode/*
@@ -22,3 +35,9 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Coverage
+coverage
+
+# Vite cache
+.vite
