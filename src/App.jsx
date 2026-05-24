@@ -1,116 +1,95 @@
 import { useState } from 'react'
+import { normalizeApiError } from './api/client'
 import './App.css'
+import ActionLogPanel from './components/ActionLogPanel'
+
+function createLogEntry({ type, message, status, code, data }) {
+  return {
+    id: crypto.randomUUID(),
+    type,
+    message,
+    status,
+    code,
+    data,
+    timestamp: new Date().toISOString(),
+  }
+}
 
 function App() {
-  const [count, setCount] = useState(0)
+  const [logs, setLogs] = useState([])
+
+  function addLog({ type = 'info', message, status, code, data }) {
+    setLogs((currentLogs) => [
+      createLogEntry({ type, message, status, code, data }),
+      ...currentLogs,
+    ])
+  }
+
+  function addSuccessLog(message, data) {
+    addLog({
+      type: 'success',
+      message,
+      data,
+    })
+  }
+
+  function addErrorLog(error) {
+    const normalizedError = normalizeApiError(error)
+
+    addLog({
+      type: 'error',
+      message: normalizedError.message,
+      status: normalizedError.status,
+      code: normalizedError.code,
+      data: normalizedError.data,
+    })
+  }
+
+  function clearLogs() {
+    setLogs([])
+  }
+
+  function addSampleErrorLog() {
+    addErrorLog({
+      response: {
+        status: 409,
+        data: {
+          code: 'DUPLICATE_APPLICATION',
+          message: '이미 가입 신청한 팀입니다.',
+        },
+      },
+    })
+  }
 
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/favicon.svg"></use>
-          </svg>
-        </div>
+    <main className="app-shell">
+      <section className="intro-panel">
         <div>
-          <h1>Get started</h1>
+          <h1>NeomanGo API Test UI</h1>
           <p>
-            Edit <code>src/App.jsx</code> and save to test <code>HMR</code>
+            Phase 4.5 검증용 UI에서 공통으로 사용할 ActionLogPanel을
+            확인합니다.
           </p>
         </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
 
-      <div className="ticks"></div>
-
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
+        <div className="test-actions" aria-label="로그 테스트 버튼">
+          <button
+            type="button"
+            onClick={() => addSuccessLog('샘플 성공 로그가 추가되었습니다.')}
+          >
+            성공 로그 추가
+          </button>
+          <button type="button" onClick={addSampleErrorLog}>
+            실패 로그 추가
+          </button>
+          <button type="button" onClick={clearLogs}>
+            로그 초기화
+          </button>
         </div>
       </section>
 
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
+      <ActionLogPanel logs={logs} />
+    </main>
   )
 }
 
