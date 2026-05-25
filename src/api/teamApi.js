@@ -33,35 +33,19 @@ export function deleteTeam(teamId) {
 }
 
 export function getTeamMembers(teamId) {
-  // TODO: 백엔드 팀원 목록 조회 엔드포인트 확정 후 실제 API 호출로 교체한다.
-  return Promise.reject(
-    new Error(
-      `TODO: get team members endpoint is not confirmed. teamId=${teamId}`,
-    ),
-  )
+  return api.get(`/api/teams/${teamId}/members`)
 }
 
 export function leaveTeam(teamId) {
-  // TODO: 백엔드 팀 탈퇴 엔드포인트 확정 후 실제 API 호출로 교체한다.
-  return Promise.reject(
-    new Error(`TODO: leave team endpoint is not confirmed. teamId=${teamId}`),
-  )
+  return api.post(`/api/teams/${teamId}/members/me/leave`)
 }
 
 export function kickMember(teamId, teamMemberId) {
-  // TODO: 백엔드 팀원 강퇴 엔드포인트 확정 후 실제 API 호출로 교체한다.
-  return Promise.reject(
-    new Error(
-      `TODO: kick member endpoint is not confirmed. teamId=${teamId}, teamMemberId=${teamMemberId}`,
-    ),
-  )
+  return api.post(`/api/teams/${teamId}/members/${teamMemberId}/kick`)
 }
 
 export function delegateOwner(teamId, targetTeamMemberId) {
-  // TODO: 백엔드 OWNER 위임 엔드포인트 확정 후 실제 API 호출로 교체한다.
-  return Promise.reject(
-    new Error(
-      `TODO: delegate owner endpoint is not confirmed. teamId=${teamId}, targetTeamMemberId=${targetTeamMemberId}`,
-    ),
-  )
+  return api.post(`/api/teams/${teamId}/owner/delegate`, {
+    targetTeamMemberId,
+  })
 }

@@ -19,6 +19,7 @@ function formatDate(value) {
 function TeamListPanel({
   selectedCategory,
   selectedTeamId,
+  refreshKey,
   onSelectTeam,
   onInfo,
   onSuccess,
@@ -90,7 +91,7 @@ function TeamListPanel({
     return () => {
       ignore = true
     }
-  }, [selectedCategory, onError, onInfo, onSuccess])
+  }, [selectedCategory, refreshKey, onError, onInfo, onSuccess])
 
   return (
     <section className="team-list-panel" aria-labelledby="team-list-title">

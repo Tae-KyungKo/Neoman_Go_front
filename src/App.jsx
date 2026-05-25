@@ -1,11 +1,17 @@
-import { useCallback, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { normalizeApiError } from './api/client'
+import { getCurrentUser } from './api/userApi'
 import './App.css'
 import ActionLogPanel from './components/ActionLogPanel'
 import CategorySelector from './components/CategorySelector'
 import LoginPanel from './components/LoginPanel'
+import MyTeamApplicationsPanel from './components/MyTeamApplicationsPanel'
+import OwnerTeamApplicationsPanel from './components/OwnerTeamApplicationsPanel'
+import TeamCreatePanel from './components/TeamCreatePanel'
+import TeamApplicationPanel from './components/TeamApplicationPanel'
 import TeamDetailPanel from './components/TeamDetailPanel'
 import TeamListPanel from './components/TeamListPanel'
+import TeamMemberManagementPanel from './components/TeamMemberManagementPanel'
 
 function createLogEntry({ type, message, status, code, data }) {
   return {
@@ -23,6 +29,12 @@ function App() {
   const [logs, setLogs] = useState([])
   const [selectedCategory, setSelectedCategory] = useState(null)
   const [selectedTeamId, setSelectedTeamId] = useState(null)
+  const [selectedTeamDetail, setSelectedTeamDetail] = useState(null)
+  const [myApplications, setMyApplications] = useState([])
+  const [applicationRefreshKey, setApplicationRefreshKey] = useState(0)
+  const [ownerApplicationRefreshKey, setOwnerApplicationRefreshKey] = useState(0)
+  const [teamDetailRefreshKey, setTeamDetailRefreshKey] = useState(0)
+  const [teamListRefreshKey, setTeamListRefreshKey] = useState(0)
   const [currentUser, setCurrentUser] = useState(() => {
     const accessToken = localStorage.getItem('accessToken') ?? ''
 
@@ -83,6 +95,7 @@ function App() {
   function handleSelectCategory(category) {
     setSelectedCategory(category)
     setSelectedTeamId(null)
+    setSelectedTeamDetail(null)
     addSuccessLog(`카테고리 선택: ${category.label}(${category.code})`, {
       categoryCode: category.code,
       categoryLabel: category.label,
@@ -95,8 +108,62 @@ function App() {
         return currentTeamId
       }
 
+      setSelectedTeamDetail(null)
       return team.id
     })
+  }
+
+  function handleTeamCreated(team) {
+    setTeamListRefreshKey((currentKey) => currentKey + 1)
+    if (team?.id) {
+      setSelectedTeamId(team.id)
+      setSelectedTeamDetail(null)
+    }
+  }
+
+  const handleTeamLoaded = useCallback(function handleTeamLoaded(team) {
+    setSelectedTeamDetail(team)
+  }, [])
+
+  const handleApplicationsLoaded = useCallback(
+    function handleApplicationsLoaded(applications) {
+      setMyApplications(applications)
+    },
+    [],
+  )
+
+  function handleApplicationChanged() {
+    setApplicationRefreshKey((currentKey) => currentKey + 1)
+    setTeamDetailRefreshKey((currentKey) => currentKey + 1)
+    setOwnerApplicationRefreshKey((currentKey) => currentKey + 1)
+  }
+
+  function handleApplicationReviewed({ refreshTeamDetail = false } = {}) {
+    setOwnerApplicationRefreshKey((currentKey) => currentKey + 1)
+    setApplicationRefreshKey((currentKey) => currentKey + 1)
+
+    if (refreshTeamDetail) {
+      setTeamDetailRefreshKey((currentKey) => currentKey + 1)
+    }
+  }
+
+  function handleTeamMemberChanged({
+    clearSelectedTeam = false,
+    refreshOwnerApplications = false,
+    teamMayBeDeleted = false,
+  } = {}) {
+    setTeamListRefreshKey((currentKey) => currentKey + 1)
+
+    if (clearSelectedTeam) {
+      setSelectedTeamId(null)
+      setSelectedTeamDetail(null)
+    } else {
+      setTeamDetailRefreshKey((currentKey) => currentKey + 1)
+    }
+
+    if (refreshOwnerApplications || teamMayBeDeleted) {
+      setOwnerApplicationRefreshKey((currentKey) => currentKey + 1)
+    }
   }
 
   function addSampleErrorLog() {
@@ -110,6 +177,48 @@ function App() {
       },
     })
   }
+
+  useEffect(() => {
+    if (!currentUser.accessToken || currentUser.id) {
+      return
+    }
+
+    let ignore = false
+
+    async function loadCurrentUser() {
+      try {
+        const response = await getCurrentUser()
+        const me = response?.data?.data
+
+        if (ignore || !me) {
+          return
+        }
+
+        setCurrentUser((user) => {
+          if (user.accessToken !== currentUser.accessToken) {
+            return user
+          }
+
+          return {
+            ...user,
+            id: me.id,
+            email: user.email || me.email,
+            nickname: me.nickname,
+            role: me.role,
+            status: me.status,
+          }
+        })
+      } catch {
+        // 현재 사용자 식별 실패는 팀원 관리 버튼 비활성화로 처리한다.
+      }
+    }
+
+    loadCurrentUser()
+
+    return () => {
+      ignore = true
+    }
+  }, [currentUser.accessToken, currentUser.id])
 
   return (
     <main className="app-shell">
@@ -150,11 +259,21 @@ function App() {
         selectedCategory={selectedCategory}
       />
 
+      <TeamCreatePanel
+        currentUser={currentUser}
+        onError={addErrorLog}
+        onInfo={addInfoLog}
+        onSuccess={addSuccessLog}
+        onTeamCreated={handleTeamCreated}
+        selectedCategory={selectedCategory}
+      />
+
       <TeamListPanel
         onError={addErrorLog}
         onInfo={addInfoLog}
         onSelectTeam={handleSelectTeam}
         onSuccess={addSuccessLog}
+        refreshKey={teamListRefreshKey}
         selectedCategory={selectedCategory}
         selectedTeamId={selectedTeamId}
       />
@@ -163,7 +282,50 @@ function App() {
         onError={addErrorLog}
         onInfo={addInfoLog}
         onSuccess={addSuccessLog}
+        onTeamLoaded={handleTeamLoaded}
+        refreshKey={teamDetailRefreshKey}
         teamId={selectedTeamId}
+      />
+
+      <TeamMemberManagementPanel
+        key={`${currentUser.accessToken || 'guest'}-${selectedTeamId || 'none'}`}
+        currentUser={currentUser}
+        onError={addErrorLog}
+        onInfo={addInfoLog}
+        onMemberChanged={handleTeamMemberChanged}
+        onSuccess={addSuccessLog}
+        team={selectedTeamDetail}
+      />
+
+      <TeamApplicationPanel
+        currentUser={currentUser}
+        myApplications={myApplications}
+        onApplicationChanged={handleApplicationChanged}
+        onError={addErrorLog}
+        onInfo={addInfoLog}
+        onSuccess={addSuccessLog}
+        team={selectedTeamDetail}
+      />
+
+      <OwnerTeamApplicationsPanel
+        currentUser={currentUser}
+        onApplicationReviewed={handleApplicationReviewed}
+        onError={addErrorLog}
+        onInfo={addInfoLog}
+        onSuccess={addSuccessLog}
+        refreshKey={ownerApplicationRefreshKey}
+        team={selectedTeamDetail}
+      />
+
+      <MyTeamApplicationsPanel
+        key={currentUser.accessToken || 'guest'}
+        currentUser={currentUser}
+        onApplicationChanged={handleApplicationChanged}
+        onApplicationsLoaded={handleApplicationsLoaded}
+        onError={addErrorLog}
+        onInfo={addInfoLog}
+        onSuccess={addSuccessLog}
+        refreshKey={applicationRefreshKey}
       />
 
       <ActionLogPanel logs={logs} />
@@ -172,3 +334,5 @@ function App() {
 }
 
 export default App
+
+

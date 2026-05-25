@@ -9,8 +9,13 @@
 .intro-panel,
 .login-panel,
 .category-panel,
+.team-create-panel,
 .team-list-panel,
 .team-detail-panel,
+.team-member-management-panel,
+.team-application-panel,
+.owner-applications-panel,
+.my-applications-panel,
 .action-log-panel {
   border: 1px solid var(--border);
   border-radius: 8px;
@@ -48,14 +53,19 @@
   max-width: 520px;
 }
 
-.login-form label {
+.login-form label,
+.team-create-form label,
+.application-form label {
   display: grid;
   gap: 6px;
   color: var(--text-h);
   font-weight: 600;
 }
 
-.login-form input {
+.login-form input,
+.team-create-form input,
+.team-create-form textarea,
+.application-form textarea {
   border: 1px solid var(--border);
   border-radius: 6px;
   padding: 10px 12px;
@@ -64,9 +74,29 @@
   font: inherit;
 }
 
-.login-form input:focus {
+.team-create-form textarea,
+.application-form textarea {
+  resize: vertical;
+}
+
+.login-form input:focus,
+.team-create-form input:focus,
+.team-create-form textarea:focus,
+.application-form textarea:focus {
   border-color: var(--accent);
   outline: none;
+}
+
+.team-create-form {
+  display: grid;
+  gap: 14px;
+  max-width: 640px;
+}
+
+.application-form {
+  display: grid;
+  gap: 14px;
+  max-width: 640px;
 }
 
 .login-actions {
@@ -297,6 +327,136 @@
   font-weight: 700;
 }
 
+.management-member-list {
+  display: grid;
+  gap: 10px;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.management-member-list li {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: flex-start;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 14px;
+  background: var(--bg);
+}
+
+.management-member-list li > div:first-child {
+  display: grid;
+  gap: 6px;
+}
+
+.management-member-list strong {
+  color: var(--text-h);
+}
+
+.management-member-list span {
+  color: var(--text-muted);
+  font-family: var(--mono);
+  font-size: 13px;
+}
+
+.member-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.member-actions button {
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 8px 12px;
+  color: var(--text-h);
+  background: var(--button-bg);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.member-actions button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.member-leave-actions {
+  margin-top: 16px;
+}
+
+.application-list {
+  display: grid;
+  gap: 10px;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.application-card {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: flex-start;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 14px;
+  background: var(--bg);
+}
+
+.application-card div {
+  display: grid;
+  gap: 6px;
+}
+
+.application-card strong {
+  color: var(--text-h);
+}
+
+.application-card span {
+  color: var(--text-muted);
+  font-family: var(--mono);
+  font-size: 13px;
+}
+
+.application-card p {
+  color: var(--text);
+}
+
+.application-card button {
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 8px 12px;
+  color: var(--text-h);
+  background: var(--button-bg);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.application-card button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.application-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.processed-state {
+  border-radius: 999px;
+  padding: 4px 10px;
+  color: var(--text-muted);
+  background: var(--button-bg);
+  font-family: var(--mono);
+  font-size: 13px;
+  white-space: nowrap;
+}
+
 .test-actions {
   display: flex;
   flex-wrap: wrap;
@@ -415,8 +575,13 @@
   .intro-panel,
   .login-panel,
   .category-panel,
+  .team-create-panel,
   .team-list-panel,
   .team-detail-panel,
+  .team-member-management-panel,
+  .team-application-panel,
+  .owner-applications-panel,
+  .my-applications-panel,
   .action-log-panel {
     padding: 18px;
   }
@@ -424,4 +589,13 @@
   .member-list li {
     grid-template-columns: 1fr;
   }
+
+  .application-card {
+    flex-direction: column;
+  }
+
+  .management-member-list li {
+    flex-direction: column;
+  }
 }
+

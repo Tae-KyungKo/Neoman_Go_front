@@ -16,7 +16,14 @@ function formatDate(value) {
   }).format(new Date(value))
 }
 
-function TeamDetailPanel({ teamId, onInfo, onSuccess, onError }) {
+function TeamDetailPanel({
+  teamId,
+  refreshKey,
+  onTeamLoaded,
+  onInfo,
+  onSuccess,
+  onError,
+}) {
   const [team, setTeam] = useState(null)
   const [isLoading, setIsLoading] = useState(false)
   const [errorMessage, setErrorMessage] = useState('')
@@ -42,6 +49,7 @@ function TeamDetailPanel({ teamId, onInfo, onSuccess, onError }) {
         }
 
         setTeam(detail)
+        onTeamLoaded(detail)
         onSuccess(`팀 상세 조회 완료: teamId=${teamId}`, { teamId })
       } catch (error) {
         if (ignore) {
@@ -50,6 +58,7 @@ function TeamDetailPanel({ teamId, onInfo, onSuccess, onError }) {
 
         const normalizedError = onError(error, `팀 상세 조회 실패: teamId=${teamId}`)
         setTeam(null)
+        onTeamLoaded(null)
         setErrorMessage(
           normalizedError?.message ?? '팀 상세 조회 중 오류가 발생했습니다.',
         )
@@ -65,7 +74,7 @@ function TeamDetailPanel({ teamId, onInfo, onSuccess, onError }) {
     return () => {
       ignore = true
     }
-  }, [teamId, onError, onInfo, onSuccess])
+  }, [teamId, refreshKey, onError, onInfo, onSuccess, onTeamLoaded])
 
   return (
     <section className="team-detail-panel" aria-labelledby="team-detail-title">
