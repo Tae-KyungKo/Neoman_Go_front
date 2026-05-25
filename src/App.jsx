@@ -1,7 +1,11 @@
-import { useState } from 'react'
+import { useCallback, useState } from 'react'
 import { normalizeApiError } from './api/client'
 import './App.css'
 import ActionLogPanel from './components/ActionLogPanel'
+import CategorySelector from './components/CategorySelector'
+import LoginPanel from './components/LoginPanel'
+import TeamDetailPanel from './components/TeamDetailPanel'
+import TeamListPanel from './components/TeamListPanel'
 
 function createLogEntry({ type, message, status, code, data }) {
   return {
@@ -17,36 +21,82 @@ function createLogEntry({ type, message, status, code, data }) {
 
 function App() {
   const [logs, setLogs] = useState([])
+  const [selectedCategory, setSelectedCategory] = useState(null)
+  const [selectedTeamId, setSelectedTeamId] = useState(null)
+  const [currentUser, setCurrentUser] = useState(() => {
+    const accessToken = localStorage.getItem('accessToken') ?? ''
 
-  function addLog({ type = 'info', message, status, code, data }) {
+    return {
+      isLoggedIn: Boolean(accessToken),
+      email: '',
+      accessToken,
+    }
+  })
+
+  const addLog = useCallback(function addLog({
+    type = 'info',
+    message,
+    status,
+    code,
+    data,
+  }) {
     setLogs((currentLogs) => [
       createLogEntry({ type, message, status, code, data }),
       ...currentLogs,
     ])
-  }
+  }, [])
 
-  function addSuccessLog(message, data) {
+  const addSuccessLog = useCallback(function addSuccessLog(message, data) {
     addLog({
       type: 'success',
       message,
       data,
     })
-  }
+  }, [addLog])
 
-  function addErrorLog(error) {
+  const addInfoLog = useCallback(function addInfoLog(message, data) {
+    addLog({
+      type: 'info',
+      message,
+      data,
+    })
+  }, [addLog])
+
+  const addErrorLog = useCallback(function addErrorLog(error, message) {
     const normalizedError = normalizeApiError(error)
 
     addLog({
       type: 'error',
-      message: normalizedError.message,
+      message: message ?? normalizedError.message,
       status: normalizedError.status,
       code: normalizedError.code,
       data: normalizedError.data,
     })
-  }
+
+    return normalizedError
+  }, [addLog])
 
   function clearLogs() {
     setLogs([])
+  }
+
+  function handleSelectCategory(category) {
+    setSelectedCategory(category)
+    setSelectedTeamId(null)
+    addSuccessLog(`카테고리 선택: ${category.label}(${category.code})`, {
+      categoryCode: category.code,
+      categoryLabel: category.label,
+    })
+  }
+
+  function handleSelectTeam(team) {
+    setSelectedTeamId((currentTeamId) => {
+      if (currentTeamId === team.id) {
+        return currentTeamId
+      }
+
+      return team.id
+    })
   }
 
   function addSampleErrorLog() {
@@ -87,6 +137,34 @@ function App() {
           </button>
         </div>
       </section>
+
+      <LoginPanel
+        currentUser={currentUser}
+        onError={addErrorLog}
+        onSuccess={addSuccessLog}
+        setCurrentUser={setCurrentUser}
+      />
+
+      <CategorySelector
+        onSelectCategory={handleSelectCategory}
+        selectedCategory={selectedCategory}
+      />
+
+      <TeamListPanel
+        onError={addErrorLog}
+        onInfo={addInfoLog}
+        onSelectTeam={handleSelectTeam}
+        onSuccess={addSuccessLog}
+        selectedCategory={selectedCategory}
+        selectedTeamId={selectedTeamId}
+      />
+
+      <TeamDetailPanel
+        onError={addErrorLog}
+        onInfo={addInfoLog}
+        onSuccess={addSuccessLog}
+        teamId={selectedTeamId}
+      />
 
       <ActionLogPanel logs={logs} />
     </main>
