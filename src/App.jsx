@@ -287,15 +287,17 @@ function App() {
         teamId={selectedTeamId}
       />
 
-      <TeamMemberManagementPanel
-        key={`${currentUser.accessToken || 'guest'}-${selectedTeamId || 'none'}`}
-        currentUser={currentUser}
-        onError={addErrorLog}
-        onInfo={addInfoLog}
-        onMemberChanged={handleTeamMemberChanged}
-        onSuccess={addSuccessLog}
-        team={selectedTeamDetail}
-      />
+      {selectedTeamDetail ? (
+        <TeamMemberManagementPanel
+          key={`${currentUser.accessToken || 'guest'}-${selectedTeamId || 'none'}`}
+          currentUser={currentUser}
+          onError={addErrorLog}
+          onInfo={addInfoLog}
+          onMemberChanged={handleTeamMemberChanged}
+          onSuccess={addSuccessLog}
+          team={selectedTeamDetail}
+        />
+      ) : null}
 
       <TeamApplicationPanel
         currentUser={currentUser}
@@ -308,6 +310,7 @@ function App() {
       />
 
       <OwnerTeamApplicationsPanel
+        key={`${currentUser.accessToken || 'guest'}-${selectedTeamId || 'none'}`}
         currentUser={currentUser}
         onApplicationReviewed={handleApplicationReviewed}
         onError={addErrorLog}
