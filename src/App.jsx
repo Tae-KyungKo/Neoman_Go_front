@@ -3,6 +3,7 @@ import { normalizeApiError } from './api/client'
 import { getCurrentUser } from './api/userApi'
 import './App.css'
 import ActionLogPanel from './components/ActionLogPanel'
+import BoardPanel from './components/BoardPanel'
 import CategorySelector from './components/CategorySelector'
 import LoginPanel from './components/LoginPanel'
 import MyTeamApplicationsPanel from './components/MyTeamApplicationsPanel'
@@ -29,6 +30,7 @@ function App() {
   const [logs, setLogs] = useState([])
   const [selectedCategory, setSelectedCategory] = useState(null)
   const [selectedTeamId, setSelectedTeamId] = useState(null)
+  const [selectedPostId, setSelectedPostId] = useState(null)
   const [selectedTeamDetail, setSelectedTeamDetail] = useState(null)
   const [myApplications, setMyApplications] = useState([])
   const [applicationRefreshKey, setApplicationRefreshKey] = useState(0)
@@ -95,6 +97,7 @@ function App() {
   function handleSelectCategory(category) {
     setSelectedCategory(category)
     setSelectedTeamId(null)
+    setSelectedPostId(null)
     setSelectedTeamDetail(null)
     addSuccessLog(`카테고리 선택: ${category.label}(${category.code})`, {
       categoryCode: category.code,
@@ -111,6 +114,20 @@ function App() {
       setSelectedTeamDetail(null)
       return team.id
     })
+  }
+
+  function handleSelectPost(postId) {
+    setSelectedPostId((currentPostId) => {
+      if (currentPostId === postId) {
+        return currentPostId
+      }
+
+      return postId
+    })
+  }
+
+  function handlePostDeleted() {
+    setSelectedPostId(null)
   }
 
   function handleTeamCreated(team) {
@@ -266,6 +283,17 @@ function App() {
         onSuccess={addSuccessLog}
         onTeamCreated={handleTeamCreated}
         selectedCategory={selectedCategory}
+      />
+
+      <BoardPanel
+        currentUser={currentUser}
+        onError={addErrorLog}
+        onInfo={addInfoLog}
+        onPostDeleted={handlePostDeleted}
+        onSelectPost={handleSelectPost}
+        onSuccess={addSuccessLog}
+        selectedCategory={selectedCategory}
+        selectedPostId={selectedPostId}
       />
 
       <TeamListPanel
