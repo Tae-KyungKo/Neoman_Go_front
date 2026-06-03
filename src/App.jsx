@@ -7,6 +7,7 @@ import BoardPanel from './components/BoardPanel'
 import CategorySelector from './components/CategorySelector'
 import LoginPanel from './components/LoginPanel'
 import MyTeamApplicationsPanel from './components/MyTeamApplicationsPanel'
+import NoticePanel from './components/NoticePanel'
 import OwnerTeamApplicationsPanel from './components/OwnerTeamApplicationsPanel'
 import TeamCreatePanel from './components/TeamCreatePanel'
 import TeamApplicationPanel from './components/TeamApplicationPanel'
@@ -269,6 +270,13 @@ function App() {
         onError={addErrorLog}
         onSuccess={addSuccessLog}
         setCurrentUser={setCurrentUser}
+      />
+
+      <NoticePanel
+        currentUser={currentUser}
+        onError={addErrorLog}
+        onInfo={addInfoLog}
+        onSuccess={addSuccessLog}
       />
 
       <CategorySelector

@@ -8,6 +8,10 @@
 
 .intro-panel,
 .login-panel,
+.notice-panel,
+.notice-create-panel,
+.notice-list-panel,
+.notice-detail-panel,
 .category-panel,
 .post-create-panel,
 .post-list-panel,
@@ -125,7 +129,8 @@
   gap: 18px;
 }
 
-.board-grid {
+.board-grid,
+.notice-grid {
   display: grid;
   grid-template-columns: minmax(280px, 0.9fr) minmax(360px, 1.1fr);
   gap: 18px;
@@ -729,6 +734,10 @@
 
   .intro-panel,
   .login-panel,
+  .notice-panel,
+  .notice-create-panel,
+  .notice-list-panel,
+  .notice-detail-panel,
   .category-panel,
   .post-create-panel,
   .post-list-panel,
@@ -756,7 +765,8 @@
     flex-direction: column;
   }
 
-  .board-grid {
+  .board-grid,
+  .notice-grid {
     grid-template-columns: 1fr;
   }
 }
