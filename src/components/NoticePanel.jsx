@@ -6,6 +6,7 @@ import NoticeListPanel from './NoticeListPanel'
 function NoticePanel({ currentUser, onInfo, onSuccess, onError }) {
   const [selectedNoticeId, setSelectedNoticeId] = useState(null)
   const [noticeListRefreshKey, setNoticeListRefreshKey] = useState(0)
+  const [noticeDetailRefreshKey, setNoticeDetailRefreshKey] = useState(0)
 
   function handleSelectNotice(noticeId) {
     setSelectedNoticeId((currentNoticeId) => {
@@ -22,7 +23,18 @@ function NoticePanel({ currentUser, onInfo, onSuccess, onError }) {
 
     if (notice?.id) {
       setSelectedNoticeId(notice.id)
+      setNoticeDetailRefreshKey((currentKey) => currentKey + 1)
     }
+  }
+
+  function handleNoticeUpdated() {
+    setNoticeListRefreshKey((currentKey) => currentKey + 1)
+    setNoticeDetailRefreshKey((currentKey) => currentKey + 1)
+  }
+
+  function handleNoticeDeleted() {
+    setSelectedNoticeId(null)
+    setNoticeListRefreshKey((currentKey) => currentKey + 1)
   }
 
   return (
@@ -54,10 +66,14 @@ function NoticePanel({ currentUser, onInfo, onSuccess, onError }) {
         />
 
         <NoticeDetailPanel
+          currentUser={currentUser}
           noticeId={selectedNoticeId}
           onError={onError}
           onInfo={onInfo}
+          onNoticeDeleted={handleNoticeDeleted}
+          onNoticeUpdated={handleNoticeUpdated}
           onSuccess={onSuccess}
+          refreshKey={noticeDetailRefreshKey}
         />
       </div>
     </section>
