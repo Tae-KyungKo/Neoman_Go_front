@@ -60,6 +60,13 @@
   background: var(--accent-bg);
 }
 
+.main-navigation a.dev-nav-link {
+  color: var(--text-muted);
+  border-style: dashed;
+  font-family: var(--mono);
+  font-size: 14px;
+}
+
 .header-actions {
   justify-content: flex-end;
 }
@@ -236,6 +243,35 @@
 .login-page {
   display: grid;
   gap: 24px;
+}
+
+.dev-page {
+  display: grid;
+  gap: 24px;
+}
+
+.dev-page-header {
+  border-style: dashed;
+}
+
+.dev-notice-grid {
+  display: grid;
+  gap: 8px;
+}
+
+.legacy-dev-shell {
+  display: grid;
+  gap: 24px;
+  padding-top: 8px;
+}
+
+.button-like {
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 8px 12px;
+  color: var(--text-h);
+  background: var(--button-bg);
+  cursor: pointer;
 }
 
 .intro-panel,

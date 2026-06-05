@@ -187,3 +187,63 @@
 - 현재 워킹트리 상태를 확인한다.
 - Phase 7.5의 범위, 제외 범위, 세부 Step, 라우트 초안, 시연 시나리오, 환경 기준을 문서화한다.
 - 운영 코드, 프론트 기능 코드, 테스트 코드, CSS, 환경변수 파일은 수정하지 않는다.
+
+## Phase 7.5-10. 환경변수/포트/CORS 정리
+
+### 프론트 환경변수
+
+- 프론트 API base URL은 `VITE_API_BASE_URL`을 기준으로 한다.
+- 로컬 개발 기본값은 `http://localhost:8080`이다.
+- `.env.example`에는 다음 값을 둔다.
+
+```text
+VITE_API_BASE_URL=http://localhost:8080
+```
+
+- `.env.local`은 개인 로컬 설정 파일이므로 커밋하지 않는다.
+- secret, access token, refresh token, 관리자 계정 정보는 환경 예시 파일에 넣지 않는다.
+
+### 로컬 포트 기준
+
+- Frontend Vite dev server: `5173`
+- Backend Spring Boot: `8080`
+- MySQL: `3306`
+- Redis: `6379`
+- Frontend API base URL: `VITE_API_BASE_URL`
+- SSE URL: `${VITE_API_BASE_URL}/api/notifications/stream`
+
+### REST/SSE URL 기준
+
+- REST API client는 `src/api/client.js`의 `API_BASE_URL`을 사용한다.
+- `API_BASE_URL`은 `import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080'` 기준이다.
+- SSE client는 별도 origin을 하드코딩하지 않고 `API_BASE_URL`에 `/api/notifications/stream`을 붙여 생성한다.
+- 따라서 `VITE_API_BASE_URL`이 바뀌면 REST API와 SSE endpoint가 함께 바뀐다.
+
+### CORS 점검 항목
+
+- 백엔드는 로컬 프론트 origin `http://localhost:5173`을 CORS 허용 origin에 포함해야 한다.
+- 인증 API, 일반 REST API, 관리자 API 모두 `Authorization` header를 허용해야 한다.
+- SSE endpoint `GET /api/notifications/stream`에도 동일한 CORS 정책이 적용되어야 한다.
+- SSE 연결은 `Authorization: Bearer {accessToken}` header를 사용하므로 preflight/CORS 정책에서 header가 차단되지 않아야 한다.
+- 배포 시 프론트 origin이 변경되면 백엔드 CORS 허용 origin도 함께 변경해야 한다.
+- 이 프론트 저장소에서는 백엔드 CORS 코드를 수정하지 않는다. 백엔드 Phase 8 또는 배포 준비 단계에서 실제 CORS 설정을 확인한다.
+
+### React Router 배포 fallback
+
+- React Router를 사용하므로 정적 배포 서버는 SPA fallback을 제공해야 한다.
+- `/`, `/login`, `/notifications`, `/notices/1`, `/c/LOL/teams`, `/c/LOL/posts/1` 같은 경로를 새로고침해도 `index.html`로 fallback되어야 한다.
+- Vite dev server에서는 fallback이 동작하지만, Nginx/S3/정적 서버 배포에서는 별도 설정이 없으면 새로고침 시 404가 발생할 수 있다.
+
+### SSE 배포 점검 항목
+
+- Nginx 또는 reverse proxy를 사용하는 경우 SSE endpoint는 buffering을 꺼야 한다.
+- proxy timeout이 짧으면 장시간 SSE 연결이 끊길 수 있으므로 read timeout 설정을 확인해야 한다.
+- 배포가 다중 백엔드 인스턴스 구조가 되면 현재 단일 인스턴스 SSE 전송만으로는 사용자 연결 위치에 따라 알림 누락 위험이 있다.
+- 다중 인스턴스 배포에서는 Redis Pub/Sub, 메시지 브로커, Outbox 등을 Phase 8 이후 재검토해야 한다.
+
+### Phase 7.5-10에서 제외한 작업
+
+- 실제 운영 서버 배포는 하지 않는다.
+- CI/CD, Docker Compose, Nginx 설정 파일은 추가하지 않는다.
+- 백엔드 CORS 코드는 수정하지 않는다.
+- Redis Pub/Sub, Outbox, 다중 인스턴스 SSE 보정은 구현하지 않는다.
