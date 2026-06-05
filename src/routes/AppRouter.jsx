@@ -10,6 +10,9 @@ import DevPage from '../pages/DevPage'
 import HomePage from '../pages/HomePage'
 import LoginPage from '../pages/LoginPage'
 import PlaceholderPage from '../pages/PlaceholderPage'
+import TeamCreatePage from '../pages/teams/TeamCreatePage'
+import TeamDetailRoute from '../pages/teams/TeamDetailRoute'
+import TeamListPage from '../pages/teams/TeamListPage'
 import AdminRoute from './AdminRoute'
 import ProtectedRoute from './ProtectedRoute'
 
@@ -47,19 +50,19 @@ function AppRouter() {
               <Route index element={<CategoryHomePage />} />
               <Route
                 path="teams"
-                element={<CategoryPlaceholderPage type="teams" />}
+                element={<TeamListPage />}
               />
               <Route
                 path="teams/new"
                 element={
                   <ProtectedRoute>
-                    <CategoryPlaceholderPage type="teamNew" />
+                    <TeamCreatePage />
                   </ProtectedRoute>
                 }
               />
               <Route
                 path="teams/:teamId"
-                element={<CategoryPlaceholderPage type="teamDetail" />}
+                element={<TeamDetailRoute />}
               />
               <Route
                 path="board"
