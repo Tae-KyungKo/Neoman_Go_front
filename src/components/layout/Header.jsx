@@ -1,5 +1,6 @@
 import { NavLink, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../auth/useAuth'
+import NotificationBell from '../notifications/NotificationBell'
 import MainNavigation from './MainNavigation'
 
 function Header() {
@@ -28,11 +29,7 @@ function Header() {
       <div className="header-actions">
         <span className="user-chip">{displayName}</span>
         {currentUser?.role ? <span className="user-chip">{currentUser.role}</span> : null}
-        {currentUser?.isLoggedIn ? (
-          <NavLink className="notification-link" to="/notifications">
-            알림함
-          </NavLink>
-        ) : null}
+        <NotificationBell />
         {currentUser?.isLoggedIn ? (
           <button type="button" onClick={handleLogout}>
             로그아웃

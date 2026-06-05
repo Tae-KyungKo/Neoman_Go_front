@@ -14,6 +14,7 @@ import HomePage from '../pages/HomePage'
 import LoginPage from '../pages/LoginPage'
 import NoticeDetailRoute from '../pages/notices/NoticeDetailRoute'
 import NoticeListPage from '../pages/notices/NoticeListPage'
+import NotificationPage from '../pages/notifications/NotificationPage'
 import PlaceholderPage from '../pages/PlaceholderPage'
 import TeamCreatePage from '../pages/teams/TeamCreatePage'
 import TeamDetailRoute from '../pages/teams/TeamDetailRoute'
@@ -39,7 +40,7 @@ function AppRouter() {
               path="notifications"
               element={
                 <ProtectedRoute>
-                  <PlaceholderPage title="Notifications" />
+                  <NotificationPage />
                 </ProtectedRoute>
               }
             />
