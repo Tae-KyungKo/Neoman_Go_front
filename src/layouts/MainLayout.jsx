@@ -1,10 +1,10 @@
 import { Outlet } from 'react-router-dom'
 import Header from '../components/layout/Header'
 
-function MainLayout({ currentUser, onLogout }) {
+function MainLayout() {
   return (
     <div className="router-shell">
-      <Header currentUser={currentUser} onLogout={onLogout} />
+      <Header />
       <main className="route-content">
         <Outlet />
       </main>

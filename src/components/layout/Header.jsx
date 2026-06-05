@@ -1,8 +1,16 @@
-import { NavLink } from 'react-router-dom'
+import { NavLink, useNavigate } from 'react-router-dom'
+import { useAuth } from '../../auth/useAuth'
 import MainNavigation from './MainNavigation'
 
-function Header({ currentUser, onLogout }) {
+function Header() {
+  const navigate = useNavigate()
+  const { currentUser, logout } = useAuth()
   const displayName = currentUser?.nickname || currentUser?.email || 'Guest'
+
+  function handleLogout() {
+    logout()
+    navigate('/', { replace: true })
+  }
 
   return (
     <header className="app-header">
@@ -19,17 +27,25 @@ function Header({ currentUser, onLogout }) {
 
       <div className="header-actions">
         <span className="user-chip">{displayName}</span>
-        <NavLink className="notification-link" to="/notifications">
-          알림함
-        </NavLink>
+        {currentUser?.role ? <span className="user-chip">{currentUser.role}</span> : null}
         {currentUser?.isLoggedIn ? (
-          <button type="button" onClick={onLogout}>
+          <NavLink className="notification-link" to="/notifications">
+            알림함
+          </NavLink>
+        ) : null}
+        {currentUser?.isLoggedIn ? (
+          <button type="button" onClick={handleLogout}>
             로그아웃
           </button>
         ) : (
-          <NavLink className="button-link" to="/login">
-            로그인
-          </NavLink>
+          <>
+            <NavLink className="button-link" to="/login">
+              로그인
+            </NavLink>
+            <NavLink className="button-link" to="/signup">
+              회원가입
+            </NavLink>
+          </>
         )}
       </div>
     </header>

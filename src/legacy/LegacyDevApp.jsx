@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { normalizeApiError } from '../api/client'
+import { useAuth } from '../auth/useAuth'
 import { getCurrentUser } from '../api/userApi'
 import ActionLogPanel from '../components/ActionLogPanel'
 import BoardPanel from '../components/BoardPanel'
@@ -27,6 +28,7 @@ function createLogEntry({ type, message, status, code, data }) {
 }
 
 function LegacyDevApp() {
+  const auth = useAuth()
   const [logs, setLogs] = useState([])
   const [selectedCategory, setSelectedCategory] = useState(null)
   const [selectedTeamId, setSelectedTeamId] = useState(null)
@@ -37,14 +39,10 @@ function LegacyDevApp() {
   const [ownerApplicationRefreshKey, setOwnerApplicationRefreshKey] = useState(0)
   const [teamDetailRefreshKey, setTeamDetailRefreshKey] = useState(0)
   const [teamListRefreshKey, setTeamListRefreshKey] = useState(0)
-  const [currentUser, setCurrentUser] = useState(() => {
-    const accessToken = localStorage.getItem('accessToken') ?? ''
-
-    return {
-      isLoggedIn: Boolean(accessToken),
-      email: '',
-      accessToken,
-    }
+  const [currentUser, setCurrentUser] = useState(() => auth.currentUser ?? {
+    isLoggedIn: Boolean(auth.accessToken),
+    email: '',
+    accessToken: auth.accessToken,
   })
 
   const addLog = useCallback(function addLog({
@@ -196,6 +194,31 @@ function LegacyDevApp() {
   }
 
   useEffect(() => {
+    const nextUser = auth.currentUser ?? {
+      isLoggedIn: Boolean(auth.accessToken),
+      email: '',
+      accessToken: auth.accessToken,
+    }
+
+    queueMicrotask(() => {
+      setCurrentUser(nextUser)
+      setSelectedCategory(null)
+      setSelectedTeamId(null)
+      setSelectedPostId(null)
+      setSelectedTeamDetail(null)
+      setMyApplications([])
+      setApplicationRefreshKey((currentKey) => currentKey + 1)
+      setOwnerApplicationRefreshKey((currentKey) => currentKey + 1)
+      setTeamDetailRefreshKey((currentKey) => currentKey + 1)
+      setTeamListRefreshKey((currentKey) => currentKey + 1)
+    })
+  }, [auth.accessToken, auth.currentUser])
+
+  function handleLegacyCurrentUserChange(nextUser) {
+    setCurrentUser(nextUser)
+  }
+
+  useEffect(() => {
     if (!currentUser.accessToken || currentUser.id) {
       return
     }
@@ -266,9 +289,11 @@ function LegacyDevApp() {
 
       <LoginPanel
         currentUser={currentUser}
+        onLoginSubmit={auth.login}
+        onLogoutClick={auth.logout}
         onError={addErrorLog}
         onSuccess={addSuccessLog}
-        setCurrentUser={setCurrentUser}
+        setCurrentUser={handleLegacyCurrentUserChange}
       />
 
       <NoticePanel

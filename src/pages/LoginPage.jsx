@@ -1,5 +1,7 @@
 import { useCallback, useState } from 'react'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { normalizeApiError } from '../api/client'
+import { useAuth } from '../auth/useAuth'
 import ActionLogPanel from '../components/ActionLogPanel'
 import LoginPanel from '../components/LoginPanel'
 
@@ -15,8 +17,12 @@ function createLogEntry({ type, message, status, code, data }) {
   }
 }
 
-function LoginPage({ currentUser, setCurrentUser }) {
+function LoginPage() {
   const [logs, setLogs] = useState([])
+  const auth = useAuth()
+  const navigate = useNavigate()
+  const location = useLocation()
+  const from = location.state?.from?.pathname || '/'
 
   const addLog = useCallback(function addLog({
     type = 'info',
@@ -53,14 +59,32 @@ function LoginPage({ currentUser, setCurrentUser }) {
     return normalizedError
   }, [addLog])
 
+  async function handleLogin(credentials) {
+    const user = await auth.login(credentials)
+    navigate(from, { replace: true })
+    return user
+  }
+
   return (
     <section className="login-page">
       <LoginPanel
-        currentUser={currentUser}
+        currentUser={auth.currentUser ?? {
+          isLoggedIn: Boolean(auth.accessToken),
+          accessToken: auth.accessToken,
+          email: '',
+        }}
         onError={addErrorLog}
+        onLoginSubmit={handleLogin}
+        onLogoutClick={auth.logout}
         onSuccess={addSuccessLog}
-        setCurrentUser={setCurrentUser}
+        setCurrentUser={() => {}}
       />
+      {auth.authError ? (
+        <div className="placeholder-panel">
+          <h2>인증 오류</h2>
+          <p>{normalizeApiError(auth.authError).message}</p>
+        </div>
+      ) : null}
       <ActionLogPanel logs={logs} />
     </section>
   )

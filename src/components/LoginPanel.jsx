@@ -18,8 +18,15 @@ function extractAccessToken(response) {
   )
 }
 
-function LoginPanel({ currentUser, setCurrentUser, onSuccess, onError }) {
-  const [email, setEmail] = useState(currentUser.email ?? '')
+function LoginPanel({
+  currentUser,
+  setCurrentUser,
+  onSuccess,
+  onError,
+  onLoginSubmit,
+  onLogoutClick,
+}) {
+  const [email, setEmail] = useState(currentUser?.email ?? '')
   const [password, setPassword] = useState('')
   const [errorMessage, setErrorMessage] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -30,18 +37,26 @@ function LoginPanel({ currentUser, setCurrentUser, onSuccess, onError }) {
     setIsSubmitting(true)
 
     try {
-      const response = await login({
-        email,
-        password,
-      })
-      const accessToken = extractAccessToken(response)
+      const nextUser = onLoginSubmit
+        ? await onLoginSubmit({ email, password })
+        : null
+      const response = onLoginSubmit
+        ? null
+        : await login({
+            email,
+            password,
+          })
+      const accessToken = nextUser?.accessToken ?? extractAccessToken(response)
 
       if (!accessToken) {
-        throw new Error('로그인 응답에서 accessToken을 찾을 수 없습니다.')
+        throw new Error('Login response does not include accessToken.')
       }
 
-      localStorage.setItem('accessToken', accessToken)
-      setCurrentUser({
+      if (!onLoginSubmit) {
+        localStorage.setItem('accessToken', accessToken)
+      }
+
+      setCurrentUser(nextUser ?? {
         isLoggedIn: true,
         email,
         accessToken,
@@ -62,7 +77,12 @@ function LoginPanel({ currentUser, setCurrentUser, onSuccess, onError }) {
   }
 
   function handleLogout() {
-    localStorage.removeItem('accessToken')
+    if (onLogoutClick) {
+      onLogoutClick()
+    } else {
+      localStorage.removeItem('accessToken')
+    }
+
     setCurrentUser({
       isLoggedIn: false,
       email: '',
@@ -73,15 +93,17 @@ function LoginPanel({ currentUser, setCurrentUser, onSuccess, onError }) {
     onSuccess('로그아웃 완료')
   }
 
+  const isLoggedIn = Boolean(currentUser?.isLoggedIn || currentUser?.accessToken)
+
   return (
     <section className="login-panel" aria-labelledby="login-panel-title">
       <div className="panel-header">
         <div>
           <h2 id="login-panel-title">Login</h2>
-          <p>JWT Access Token 저장과 인증 API 호출 준비 상태를 확인합니다.</p>
+          <p>JWT Access Token 저장과 인증 API 호출 상태를 확인합니다.</p>
         </div>
-        <span className={currentUser.isLoggedIn ? 'auth-on' : 'auth-off'}>
-          {currentUser.isLoggedIn ? '로그인' : '비로그인'}
+        <span className={isLoggedIn ? 'auth-on' : 'auth-off'}>
+          {isLoggedIn ? '로그인' : '비로그인'}
         </span>
       </div>
 
@@ -115,7 +137,7 @@ function LoginPanel({ currentUser, setCurrentUser, onSuccess, onError }) {
             {isSubmitting ? '로그인 중...' : '로그인'}
           </button>
           <button
-            disabled={!currentUser.isLoggedIn}
+            disabled={!isLoggedIn}
             onClick={handleLogout}
             type="button"
           >
@@ -127,11 +149,12 @@ function LoginPanel({ currentUser, setCurrentUser, onSuccess, onError }) {
       <div className="auth-state">
         <span>
           Access Token:{' '}
-          {currentUser.accessToken
+          {currentUser?.accessToken
             ? getTokenPreview(currentUser.accessToken)
             : '저장되지 않음'}
         </span>
-        {currentUser.email ? <span>계정: {currentUser.email}</span> : null}
+        {currentUser?.email ? <span>계정: {currentUser.email}</span> : null}
+        {currentUser?.role ? <span>Role: {currentUser.role}</span> : null}
       </div>
 
       {errorMessage ? <p className="form-error">{errorMessage}</p> : null}

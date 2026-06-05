@@ -1,13 +1,23 @@
 import { Navigate, useLocation } from 'react-router-dom'
+import { useAuth } from '../auth/useAuth'
 
-function AdminRoute({ children, currentUser }) {
+function AdminRoute({ children }) {
   const location = useLocation()
+  const { accessToken, authReady, authLoading, currentUser } = useAuth()
 
-  if (!currentUser?.isLoggedIn) {
+  if (!authReady || authLoading) {
+    return (
+      <div className="placeholder-panel">
+        <h2>권한 확인 중</h2>
+        <p>현재 사용자 권한 정보를 확인하고 있다.</p>
+      </div>
+    )
+  }
+
+  if (!accessToken || !currentUser) {
     return <Navigate to="/login" replace state={{ from: location }} />
   }
 
-  // TODO(Phase 7.5-2): currentUser 로딩 상태와 role 소스가 정리되면 ADMIN 판정을 더 엄격하게 처리한다.
   if (!currentUser.role) {
     return (
       <div className="placeholder-panel">
@@ -18,7 +28,12 @@ function AdminRoute({ children, currentUser }) {
   }
 
   if (currentUser.role !== 'ADMIN') {
-    return <Navigate to="/" replace />
+    return (
+      <div className="placeholder-panel">
+        <h2>접근 권한 없음</h2>
+        <p>관리자 권한이 있는 계정만 접근할 수 있다.</p>
+      </div>
+    )
   }
 
   return children

@@ -320,6 +320,7 @@
   background: var(--button-bg);
   cursor: pointer;
   text-align: left;
+  text-decoration: none;
 }
 
 .category-button:hover {

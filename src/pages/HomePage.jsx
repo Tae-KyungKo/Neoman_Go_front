@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom'
+import { TEAM_CATEGORIES } from '../constants/categories'
 
 function HomePage() {
   return (
@@ -10,9 +11,20 @@ function HomePage() {
         </div>
       </div>
 
-      <div className="quick-link-grid">
-        <Link to="/c/LOL">LOL 카테고리</Link>
-        <Link to="/c/SOCCER">축구 카테고리</Link>
+      <div className="category-grid" aria-label="카테고리 진입">
+        {TEAM_CATEGORIES.map((category) => (
+          <Link
+            className="category-button"
+            key={category.code}
+            to={`/c/${category.code}`}
+          >
+            <span>{category.label}</span>
+            <small>{category.code}</small>
+          </Link>
+        ))}
+      </div>
+
+      <div className="quick-link-grid compact">
         <Link to="/notices">공지사항</Link>
         <Link to="/notifications">알림함</Link>
         <Link to="/dev">기존 검증 UI</Link>
