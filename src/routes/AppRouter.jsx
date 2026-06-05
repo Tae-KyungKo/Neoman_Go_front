@@ -4,6 +4,7 @@ import AdminLayout from '../layouts/AdminLayout'
 import CategoryLayout from '../layouts/CategoryLayout'
 import MainLayout from '../layouts/MainLayout'
 import AdminDashboardPage from '../pages/AdminDashboardPage'
+import AdminNoticePage from '../pages/admin/AdminNoticePage'
 import BoardListPage from '../pages/board/BoardListPage'
 import PostDetailRoute from '../pages/board/PostDetailRoute'
 import CategoryHomePage from '../pages/CategoryHomePage'
@@ -11,6 +12,8 @@ import CategoryPlaceholderPage from '../pages/CategoryPlaceholderPage'
 import DevPage from '../pages/DevPage'
 import HomePage from '../pages/HomePage'
 import LoginPage from '../pages/LoginPage'
+import NoticeDetailRoute from '../pages/notices/NoticeDetailRoute'
+import NoticeListPage from '../pages/notices/NoticeListPage'
 import PlaceholderPage from '../pages/PlaceholderPage'
 import TeamCreatePage from '../pages/teams/TeamCreatePage'
 import TeamDetailRoute from '../pages/teams/TeamDetailRoute'
@@ -27,10 +30,10 @@ function AppRouter() {
             <Route index element={<HomePage />} />
             <Route path="login" element={<LoginPage />} />
             <Route path="signup" element={<PlaceholderPage title="Signup" />} />
-            <Route path="notices" element={<PlaceholderPage title="Notices" />} />
+            <Route path="notices" element={<NoticeListPage />} />
             <Route
               path="notices/:noticeId"
-              element={<PlaceholderPage title="Notice Detail" />}
+              element={<NoticeDetailRoute />}
             />
             <Route
               path="notifications"
@@ -90,7 +93,7 @@ function AppRouter() {
               <Route index element={<AdminDashboardPage />} />
               <Route
                 path="notices"
-                element={<PlaceholderPage title="Admin Notices" />}
+                element={<AdminNoticePage />}
               />
             </Route>
             <Route path="dev" element={<DevPage />} />
