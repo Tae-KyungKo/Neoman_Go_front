@@ -6,6 +6,120 @@
   text-align: left;
 }
 
+.router-shell {
+  display: flex;
+  min-height: 100svh;
+  flex-direction: column;
+  text-align: left;
+}
+
+.app-header {
+  display: grid;
+  grid-template-columns: minmax(160px, auto) 1fr auto;
+  gap: 16px;
+  align-items: center;
+  border-bottom: 1px solid var(--border);
+  padding: 18px 24px;
+  background: var(--panel-bg);
+}
+
+.brand-area,
+.main-navigation,
+.header-actions,
+.sub-navigation {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+}
+
+.brand-link {
+  color: var(--text-h);
+  font-size: 20px;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.main-navigation a,
+.sub-navigation a,
+.button-link,
+.notification-link,
+.quick-link-grid a {
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 8px 12px;
+  color: var(--text-h);
+  background: var(--button-bg);
+  text-decoration: none;
+}
+
+.main-navigation a.active,
+.sub-navigation a.active,
+.quick-link-grid a:hover {
+  border-color: var(--accent);
+  background: var(--accent-bg);
+}
+
+.header-actions {
+  justify-content: flex-end;
+}
+
+.header-actions button {
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 8px 12px;
+  color: var(--text-h);
+  background: var(--button-bg);
+  cursor: pointer;
+}
+
+.user-chip {
+  color: var(--text-muted);
+  font-family: var(--mono);
+  font-size: 14px;
+}
+
+.route-content {
+  display: grid;
+  gap: 24px;
+  padding: 32px;
+}
+
+.route-panel,
+.placeholder-panel {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 24px;
+  background: var(--panel-bg);
+}
+
+.route-panel {
+  display: grid;
+  gap: 20px;
+}
+
+.route-panel-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: flex-start;
+}
+
+.quick-link-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 10px;
+}
+
+.quick-link-grid.compact {
+  margin-top: 16px;
+}
+
+.login-page {
+  display: grid;
+  gap: 24px;
+}
+
 .intro-panel,
 .login-panel,
 .notice-panel,
@@ -732,7 +846,22 @@
     padding: 20px;
   }
 
+  .app-header {
+    grid-template-columns: 1fr;
+    padding: 16px 20px;
+  }
+
+  .header-actions {
+    justify-content: flex-start;
+  }
+
+  .route-content {
+    padding: 20px;
+  }
+
   .intro-panel,
+  .route-panel,
+  .placeholder-panel,
   .login-panel,
   .notice-panel,
   .notice-create-panel,
