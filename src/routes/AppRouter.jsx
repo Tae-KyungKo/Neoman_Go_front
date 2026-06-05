@@ -4,6 +4,8 @@ import AdminLayout from '../layouts/AdminLayout'
 import CategoryLayout from '../layouts/CategoryLayout'
 import MainLayout from '../layouts/MainLayout'
 import AdminDashboardPage from '../pages/AdminDashboardPage'
+import BoardListPage from '../pages/board/BoardListPage'
+import PostDetailRoute from '../pages/board/PostDetailRoute'
 import CategoryHomePage from '../pages/CategoryHomePage'
 import CategoryPlaceholderPage from '../pages/CategoryPlaceholderPage'
 import DevPage from '../pages/DevPage'
@@ -66,11 +68,11 @@ function AppRouter() {
               />
               <Route
                 path="board"
-                element={<CategoryPlaceholderPage type="board" />}
+                element={<BoardListPage />}
               />
               <Route
                 path="posts/:postId"
-                element={<CategoryPlaceholderPage type="postDetail" />}
+                element={<PostDetailRoute />}
               />
               <Route
                 path="matches"
