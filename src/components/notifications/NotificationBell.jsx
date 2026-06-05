@@ -3,6 +3,7 @@ import { NavLink } from 'react-router-dom'
 import { normalizeApiError } from '../../api/client'
 import { getUnreadNotificationCount } from '../../api/notificationApi'
 import { useAuth } from '../../auth/useAuth'
+import { NOTIFICATION_REFRESH_EVENT } from '../../constants/notificationEvents'
 
 function extractUnreadCount(response) {
   const data = response?.data?.data ?? response?.data
@@ -53,8 +54,18 @@ function NotificationBell() {
 
     loadUnreadCount()
 
+    function handleNotificationRefresh() {
+      loadUnreadCount()
+    }
+
+    window.addEventListener(NOTIFICATION_REFRESH_EVENT, handleNotificationRefresh)
+
     return () => {
       ignore = true
+      window.removeEventListener(
+        NOTIFICATION_REFRESH_EVENT,
+        handleNotificationRefresh,
+      )
     }
   }, [canLoad, accessToken, currentUser])
 

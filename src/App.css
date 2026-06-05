@@ -119,6 +119,84 @@
   align-items: flex-start;
 }
 
+.sse-status-row {
+  display: flex;
+  justify-content: flex-end;
+  border-bottom: 1px solid var(--border);
+  padding: 8px 24px;
+  background: var(--bg);
+}
+
+.sse-status {
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 4px 10px;
+  color: var(--text-muted);
+  background: var(--button-bg);
+  font-family: var(--mono);
+  font-size: 13px;
+}
+
+.sse-status.connected {
+  color: #166534;
+  background: #dcfce7;
+}
+
+.sse-status.connecting {
+  color: #854d0e;
+  background: #fef3c7;
+}
+
+.sse-status.error,
+.sse-status.disconnected {
+  color: #7f1d1d;
+  background: #fee2e2;
+}
+
+.realtime-toast-stack {
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  z-index: 20;
+  display: grid;
+  width: min(360px, calc(100vw - 40px));
+  gap: 10px;
+}
+
+.realtime-toast {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  border: 1px solid var(--accent-border);
+  border-radius: 8px;
+  padding: 14px;
+  color: var(--text);
+  background: var(--panel-bg);
+  box-shadow: var(--shadow);
+}
+
+.realtime-toast p {
+  margin-top: 4px;
+}
+
+.realtime-toast span {
+  display: inline-flex;
+  margin-top: 8px;
+  color: var(--text-muted);
+  font-family: var(--mono);
+  font-size: 13px;
+}
+
+.realtime-toast button {
+  align-self: flex-start;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 6px 10px;
+  color: var(--text-h);
+  background: var(--button-bg);
+  cursor: pointer;
+}
+
 .route-content {
   display: grid;
   gap: 24px;
@@ -898,6 +976,11 @@
 
   .route-content {
     padding: 20px;
+  }
+
+  .sse-status-row {
+    justify-content: flex-start;
+    padding: 8px 20px;
   }
 
   .intro-panel,

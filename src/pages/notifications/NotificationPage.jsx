@@ -7,6 +7,7 @@ import {
   markNotificationAsRead,
 } from '../../api/notificationApi'
 import { useAuth } from '../../auth/useAuth'
+import { NOTIFICATION_REFRESH_EVENT } from '../../constants/notificationEvents'
 import NotificationList from './NotificationList'
 
 function extractNotifications(response) {
@@ -90,6 +91,19 @@ function NotificationPage() {
     queueMicrotask(() => {
       loadNotifications()
     })
+
+    function handleNotificationRefresh() {
+      loadNotifications()
+    }
+
+    window.addEventListener(NOTIFICATION_REFRESH_EVENT, handleNotificationRefresh)
+
+    return () => {
+      window.removeEventListener(
+        NOTIFICATION_REFRESH_EVENT,
+        handleNotificationRefresh,
+      )
+    }
   }, [canLoad, accessToken, currentUser, loadNotifications])
 
   async function handleMarkAsRead(notificationId) {
