@@ -2,7 +2,7 @@ import NotificationItem from './NotificationItem'
 
 function NotificationList({ notifications, onMarkAsRead, processingId }) {
   if (notifications.length === 0) {
-    return <p className="empty-log">조회된 알림이 없습니다.</p>
+    return <p className="empty-log">읽지 않은 알림이 없습니다.</p>
   }
 
   return (

@@ -7,7 +7,10 @@ import {
   markNotificationAsRead,
 } from '../../api/notificationApi'
 import { useAuth } from '../../auth/useAuth'
-import { NOTIFICATION_REFRESH_EVENT } from '../../constants/notificationEvents'
+import {
+  dispatchNotificationRefresh,
+  NOTIFICATION_REFRESH_EVENT,
+} from '../../constants/notificationEvents'
 import NotificationList from './NotificationList'
 
 function extractNotifications(response) {
@@ -28,6 +31,10 @@ function extractUnreadCount(response) {
   }
 
   return data?.count ?? data?.unreadCount ?? 0
+}
+
+function filterUnreadNotifications(notifications) {
+  return notifications.filter((notification) => notification.read === false)
 }
 
 function NotificationPage() {
@@ -66,7 +73,9 @@ function NotificationPage() {
         getUnreadNotificationCount(),
       ])
 
-      setNotifications(extractNotifications(notificationResponse))
+      setNotifications(filterUnreadNotifications(
+        extractNotifications(notificationResponse),
+      ))
       setUnreadCount(extractUnreadCount(unreadCountResponse))
     } catch (error) {
       const normalizedError = handleAuthError(error)
@@ -92,7 +101,11 @@ function NotificationPage() {
       loadNotifications()
     })
 
-    function handleNotificationRefresh() {
+    function handleNotificationRefresh(event) {
+      if (event.detail?.source === 'notification-page') {
+        return
+      }
+
       loadNotifications()
     }
 
@@ -112,6 +125,17 @@ function NotificationPage() {
 
     try {
       await markNotificationAsRead(notificationId)
+      setNotifications((currentNotifications) =>
+        currentNotifications.filter(
+          (notification) => notification.id !== notificationId,
+        ),
+      )
+      setUnreadCount((currentCount) => Math.max(0, currentCount - 1))
+      dispatchNotificationRefresh({
+        action: 'mark-read',
+        notificationId,
+        source: 'notification-page',
+      })
       await loadNotifications()
     } catch (error) {
       setErrorMessage(handleAuthError(error).message)
@@ -126,6 +150,12 @@ function NotificationPage() {
 
     try {
       await markAllNotificationsAsRead()
+      setNotifications([])
+      setUnreadCount(0)
+      dispatchNotificationRefresh({
+        action: 'mark-all-read',
+        source: 'notification-page',
+      })
       await loadNotifications()
     } catch (error) {
       setErrorMessage(handleAuthError(error).message)
