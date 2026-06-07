@@ -16,6 +16,7 @@ import NoticeDetailRoute from '../pages/notices/NoticeDetailRoute'
 import NoticeListPage from '../pages/notices/NoticeListPage'
 import NotificationPage from '../pages/notifications/NotificationPage'
 import PlaceholderPage from '../pages/PlaceholderPage'
+import SignupPage from '../pages/SignupPage'
 import TeamCreatePage from '../pages/teams/TeamCreatePage'
 import TeamDetailRoute from '../pages/teams/TeamDetailRoute'
 import TeamListPage from '../pages/teams/TeamListPage'
@@ -30,7 +31,7 @@ function AppRouter() {
           <Route element={<MainLayout />}>
             <Route index element={<HomePage />} />
             <Route path="login" element={<LoginPage />} />
-            <Route path="signup" element={<PlaceholderPage title="Signup" />} />
+            <Route path="signup" element={<SignupPage />} />
             <Route path="notices" element={<NoticeListPage />} />
             <Route
               path="notices/:noticeId"

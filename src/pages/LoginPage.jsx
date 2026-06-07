@@ -1,5 +1,5 @@
 import { useCallback, useState } from 'react'
-import { useLocation, useNavigate } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { normalizeApiError } from '../api/client'
 import { useAuth } from '../auth/useAuth'
 import ActionLogPanel from '../components/ActionLogPanel'
@@ -23,6 +23,7 @@ function LoginPage() {
   const navigate = useNavigate()
   const location = useLocation()
   const from = location.state?.from?.pathname || '/'
+  const signupMessage = location.state?.signupMessage
 
   const addLog = useCallback(function addLog({
     type = 'info',
@@ -79,6 +80,20 @@ function LoginPage() {
         onSuccess={addSuccessLog}
         setCurrentUser={() => {}}
       />
+      {signupMessage ? (
+        <div className="placeholder-panel">
+          <h2>회원가입 완료</h2>
+          <p>{signupMessage}</p>
+        </div>
+      ) : null}
+      <div className="placeholder-panel">
+        <h2>계정이 없나요?</h2>
+        <div className="login-actions">
+          <Link className="button-link" to="/signup">
+            회원가입
+          </Link>
+        </div>
+      </div>
       {auth.authError ? (
         <div className="placeholder-panel">
           <h2>인증 오류</h2>
