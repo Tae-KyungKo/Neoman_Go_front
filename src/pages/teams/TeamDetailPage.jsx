@@ -27,8 +27,12 @@ function TeamDetailPage() {
   }
 
   const handleTeamLoaded = useCallback(function handleTeamLoaded(team) {
+    if (team && String(team.id) !== String(teamId)) {
+      return
+    }
+
     setSelectedTeamDetail(team)
-  }, [])
+  }, [teamId])
 
   const handleApplicationsLoaded = useCallback(
     function handleApplicationsLoaded(applications) {
@@ -69,9 +73,12 @@ function TeamDetailPage() {
     }
   }
 
+  const isLoadedCurrentTeam =
+    selectedTeamDetail && String(selectedTeamDetail.id) === String(teamId)
+  const routeTeamDetail = isLoadedCurrentTeam ? selectedTeamDetail : null
   const hasCategoryMismatch =
-    selectedTeamDetail?.category &&
-    selectedTeamDetail.category !== categoryCode
+    routeTeamDetail?.category &&
+    routeTeamDetail.category !== categoryCode
 
   return (
     <section className="team-route-page">
@@ -80,13 +87,13 @@ function TeamDetailPage() {
           <h2>URL 카테고리와 팀 카테고리가 일치하지 않습니다</h2>
           <p>
             URL은 {categoryLabel}({categoryCode})이지만 조회된 팀 카테고리는{' '}
-            {selectedTeamDetail.category}입니다.
+            {routeTeamDetail.category}입니다.
           </p>
         </div>
       ) : null}
 
       <TeamDetailPanel
-        key={`${categoryCode}-${teamId}-${teamDetailRefreshKey}`}
+        key={`${categoryCode}-${teamId}`}
         onError={addErrorLog}
         onInfo={addInfoLog}
         onSuccess={addSuccessLog}
@@ -95,7 +102,7 @@ function TeamDetailPage() {
         teamId={teamId}
       />
 
-      {selectedTeamDetail ? (
+      {routeTeamDetail ? (
         <TeamMemberManagementPanel
           key={`${auth.accessToken || 'guest'}-${teamId}`}
           currentUser={currentUser}
@@ -103,7 +110,7 @@ function TeamDetailPage() {
           onInfo={addInfoLog}
           onMemberChanged={handleTeamMemberChanged}
           onSuccess={addSuccessLog}
-          team={selectedTeamDetail}
+          team={routeTeamDetail}
         />
       ) : null}
 
@@ -114,7 +121,7 @@ function TeamDetailPage() {
         onError={addErrorLog}
         onInfo={addInfoLog}
         onSuccess={addSuccessLog}
-        team={selectedTeamDetail}
+        team={routeTeamDetail}
       />
 
       <OwnerTeamApplicationsPanel
@@ -125,7 +132,7 @@ function TeamDetailPage() {
         onInfo={addInfoLog}
         onSuccess={addSuccessLog}
         refreshKey={ownerApplicationRefreshKey}
-        team={selectedTeamDetail}
+        team={routeTeamDetail}
       />
 
       <MyTeamApplicationsPanel
