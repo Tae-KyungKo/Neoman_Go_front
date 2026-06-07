@@ -9,8 +9,33 @@ function formatDate(value) {
   }).format(new Date(value))
 }
 
-function NotificationItem({ notification, onMarkAsRead, isProcessing }) {
+function getTargetNavigationLabel(notification) {
+  if (notification.targetType === 'TEAM') {
+    return '팀 상세로 이동'
+  }
+
+  if (notification.targetType === 'POST') {
+    return '게시글 상세로 이동'
+  }
+
+  if (notification.targetType === 'TEAM_APPLICATION') {
+    return '팀 가입 신청 알림은 팀 상세 화면에서 확인해주세요.'
+  }
+
+  return '바로 이동을 지원하지 않는 알림입니다.'
+}
+
+function NotificationItem({
+  notification,
+  onMarkAsRead,
+  onNavigateTarget,
+  isProcessing,
+  isTargetNavigating,
+}) {
   const isUnread = !notification.read
+  const canNavigateTarget =
+    (notification.targetType === 'TEAM' || notification.targetType === 'POST') &&
+    Boolean(notification.targetId)
 
   return (
     <li className={isUnread ? 'notification-item unread' : 'notification-item'}>
@@ -33,6 +58,19 @@ function NotificationItem({ notification, onMarkAsRead, isProcessing }) {
       </div>
 
       <div className="login-actions">
+        {canNavigateTarget ? (
+          <button
+            disabled={isTargetNavigating}
+            onClick={() => onNavigateTarget(notification)}
+            type="button"
+          >
+            {isTargetNavigating ? '이동 중...' : getTargetNavigationLabel(notification)}
+          </button>
+        ) : (
+          <span className="processed-state">
+            {getTargetNavigationLabel(notification)}
+          </span>
+        )}
         <button
           disabled={!isUnread || isProcessing}
           onClick={() => onMarkAsRead(notification.id)}

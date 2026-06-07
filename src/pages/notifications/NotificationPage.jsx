@@ -11,6 +11,7 @@ import {
   dispatchNotificationRefresh,
   NOTIFICATION_REFRESH_EVENT,
 } from '../../constants/notificationEvents'
+import { useNotificationNavigation } from '../../hooks/useNotificationNavigation'
 import NotificationList from './NotificationList'
 
 function extractNotifications(response) {
@@ -39,12 +40,15 @@ function filterUnreadNotifications(notifications) {
 
 function NotificationPage() {
   const { accessToken, authReady, clearAuth, currentUser } = useAuth()
+  const { navigateToNotificationTarget } = useNotificationNavigation()
   const [notifications, setNotifications] = useState([])
   const [unreadCount, setUnreadCount] = useState(0)
   const [isLoading, setIsLoading] = useState(false)
   const [processingId, setProcessingId] = useState(null)
+  const [navigatingId, setNavigatingId] = useState(null)
   const [isMarkingAll, setIsMarkingAll] = useState(false)
   const [errorMessage, setErrorMessage] = useState('')
+  const [targetErrorMessage, setTargetErrorMessage] = useState('')
   const canLoad = authReady && Boolean(accessToken) && Boolean(currentUser)
 
   const handleAuthError = useCallback(function handleAuthError(error) {
@@ -93,6 +97,7 @@ function NotificationPage() {
         setNotifications([])
         setUnreadCount(0)
         setErrorMessage('')
+        setTargetErrorMessage('')
       })
       return
     }
@@ -144,6 +149,21 @@ function NotificationPage() {
     }
   }
 
+  async function handleNavigateTarget(notification) {
+    setNavigatingId(notification.id)
+    setTargetErrorMessage('')
+
+    try {
+      const result = await navigateToNotificationTarget(notification)
+
+      if (!result.success) {
+        setTargetErrorMessage(result.message)
+      }
+    } finally {
+      setNavigatingId(null)
+    }
+  }
+
   async function handleMarkAllAsRead() {
     setIsMarkingAll(true)
     setErrorMessage('')
@@ -189,10 +209,15 @@ function NotificationPage() {
 
       {isLoading ? <p className="empty-log">알림 목록을 조회하는 중입니다.</p> : null}
       {errorMessage ? <p className="form-error">{errorMessage}</p> : null}
+      {targetErrorMessage ? (
+        <p className="form-error">{targetErrorMessage}</p>
+      ) : null}
 
       {!isLoading && !errorMessage ? (
         <NotificationList
+          navigatingId={navigatingId}
           notifications={notifications}
+          onNavigateTarget={handleNavigateTarget}
           onMarkAsRead={handleMarkAsRead}
           processingId={processingId}
         />
