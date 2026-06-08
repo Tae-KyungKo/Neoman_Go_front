@@ -10,9 +10,6 @@ function MainNavigation() {
       <NavLink to="/c/LOL">LOL</NavLink>
       <NavLink to="/c/SOCCER">축구</NavLink>
       <NavLink to="/admin">관리자</NavLink>
-      <NavLink className="dev-nav-link" to="/dev">
-        Dev
-      </NavLink>
     </nav>
   )
 }

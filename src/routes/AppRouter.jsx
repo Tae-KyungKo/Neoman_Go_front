@@ -9,7 +9,6 @@ import BoardListPage from '../pages/board/BoardListPage'
 import PostDetailRoute from '../pages/board/PostDetailRoute'
 import CategoryHomePage from '../pages/CategoryHomePage'
 import CategoryPlaceholderPage from '../pages/CategoryPlaceholderPage'
-import DevPage from '../pages/DevPage'
 import HomePage from '../pages/HomePage'
 import LoginPage from '../pages/LoginPage'
 import NoticeDetailRoute from '../pages/notices/NoticeDetailRoute'
@@ -98,7 +97,6 @@ function AppRouter() {
                 element={<AdminNoticePage />}
               />
             </Route>
-            <Route path="dev" element={<DevPage />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Route>
         </Routes>

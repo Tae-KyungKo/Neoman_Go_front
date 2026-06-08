@@ -60,13 +60,6 @@
   background: var(--accent-bg);
 }
 
-.main-navigation a.dev-nav-link {
-  color: var(--text-muted);
-  border-style: dashed;
-  font-family: var(--mono);
-  font-size: 14px;
-}
-
 .header-actions {
   justify-content: flex-end;
 }

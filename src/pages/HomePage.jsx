@@ -27,7 +27,6 @@ function HomePage() {
       <div className="quick-link-grid compact">
         <Link to="/notices">공지사항</Link>
         <Link to="/notifications">알림함</Link>
-        <Link to="/dev">기존 검증 UI</Link>
       </div>
     </section>
   )
