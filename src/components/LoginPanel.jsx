@@ -1,5 +1,9 @@
 import { useState } from 'react'
 import { login } from '../api/authApi'
+import {
+  ACCESS_TOKEN_STORAGE_KEY,
+  REFRESH_TOKEN_STORAGE_KEY,
+} from '../auth/AuthContextValue'
 
 function getTokenPreview(accessToken) {
   if (!accessToken) {
@@ -14,6 +18,15 @@ function extractAccessToken(response) {
     response?.data?.data?.accessToken ??
     response?.data?.accessToken ??
     response?.data?.result?.accessToken ??
+    null
+  )
+}
+
+function extractRefreshToken(response) {
+  return (
+    response?.data?.data?.refreshToken ??
+    response?.data?.refreshToken ??
+    response?.data?.result?.refreshToken ??
     null
   )
 }
@@ -47,13 +60,19 @@ function LoginPanel({
             password,
           })
       const accessToken = nextUser?.accessToken ?? extractAccessToken(response)
+      const refreshToken = response ? extractRefreshToken(response) : null
 
       if (!accessToken) {
         throw new Error('Login response does not include accessToken.')
       }
 
       if (!onLoginSubmit) {
-        localStorage.setItem('accessToken', accessToken)
+        if (!refreshToken) {
+          throw new Error('Login response does not include refreshToken.')
+        }
+
+        localStorage.setItem(ACCESS_TOKEN_STORAGE_KEY, accessToken)
+        localStorage.setItem(REFRESH_TOKEN_STORAGE_KEY, refreshToken)
       }
 
       setCurrentUser(nextUser ?? {
@@ -80,7 +99,8 @@ function LoginPanel({
     if (onLogoutClick) {
       onLogoutClick()
     } else {
-      localStorage.removeItem('accessToken')
+      localStorage.removeItem(ACCESS_TOKEN_STORAGE_KEY)
+      localStorage.removeItem(REFRESH_TOKEN_STORAGE_KEY)
     }
 
     setCurrentUser({

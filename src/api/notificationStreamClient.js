@@ -1,6 +1,17 @@
 import { fetchEventSource } from '@microsoft/fetch-event-source'
 import { API_BASE_URL } from './client'
 
+export function isSseAuthError(error) {
+  return error?.status === 401 || error?.status === 403
+}
+
+function createSseError(message, response) {
+  const error = new Error(message)
+  error.status = response?.status ?? null
+  error.isAuthError = isSseAuthError(error)
+  return error
+}
+
 export function connectNotificationStream({
   accessToken,
   signal,
@@ -17,9 +28,7 @@ export function connectNotificationStream({
     signal,
     async onopen(response) {
       if (!response.ok) {
-        const error = new Error(`SSE connection failed: ${response.status}`)
-        error.status = response.status
-        throw error
+        throw createSseError(`SSE connection failed: ${response.status}`, response)
       }
     },
     onmessage(event) {

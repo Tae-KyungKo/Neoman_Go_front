@@ -1,13 +1,26 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { login as requestLogin } from '../api/authApi'
+import { login as requestLogin, reissue as requestReissue } from '../api/authApi'
 import { getCurrentUser } from '../api/userApi'
-import { ACCESS_TOKEN_STORAGE_KEY, AuthContext } from './AuthContextValue'
+import {
+  ACCESS_TOKEN_STORAGE_KEY,
+  AuthContext,
+  REFRESH_TOKEN_STORAGE_KEY,
+} from './AuthContextValue'
 
 function extractAccessToken(response) {
   return (
     response?.data?.data?.accessToken ??
     response?.data?.accessToken ??
     response?.data?.result?.accessToken ??
+    null
+  )
+}
+
+function extractRefreshToken(response) {
+  return (
+    response?.data?.data?.refreshToken ??
+    response?.data?.refreshToken ??
+    response?.data?.result?.refreshToken ??
     null
   )
 }
@@ -38,16 +51,29 @@ function readStoredAccessToken() {
   return localStorage.getItem(ACCESS_TOKEN_STORAGE_KEY) ?? ''
 }
 
+function readStoredRefreshToken() {
+  return localStorage.getItem(REFRESH_TOKEN_STORAGE_KEY) ?? ''
+}
+
 function removeStoredAccessToken() {
   localStorage.removeItem(ACCESS_TOKEN_STORAGE_KEY)
+}
+
+function removeStoredRefreshToken() {
+  localStorage.removeItem(REFRESH_TOKEN_STORAGE_KEY)
 }
 
 function storeAccessToken(accessToken) {
   localStorage.setItem(ACCESS_TOKEN_STORAGE_KEY, accessToken)
 }
 
+function storeRefreshToken(refreshToken) {
+  localStorage.setItem(REFRESH_TOKEN_STORAGE_KEY, refreshToken)
+}
+
 export function AuthProvider({ children }) {
   const [accessToken, setAccessToken] = useState(readStoredAccessToken)
+  const [refreshToken, setRefreshToken] = useState(readStoredRefreshToken)
   const [currentUser, setCurrentUser] = useState(null)
   const [authReady, setAuthReady] = useState(() => !readStoredAccessToken())
   const [authLoading, setAuthLoading] = useState(false)
@@ -55,7 +81,9 @@ export function AuthProvider({ children }) {
 
   const clearAuth = useCallback(function clearAuth() {
     removeStoredAccessToken()
+    removeStoredRefreshToken()
     setAccessToken('')
+    setRefreshToken('')
     setCurrentUser(null)
     setAuthError(null)
     setAuthReady(true)
@@ -103,13 +131,20 @@ export function AuthProvider({ children }) {
     try {
       const response = await requestLogin(credentials)
       const nextAccessToken = extractAccessToken(response)
+      const nextRefreshToken = extractRefreshToken(response)
 
       if (!nextAccessToken) {
         throw new Error('Login response does not include accessToken.')
       }
 
+      if (!nextRefreshToken) {
+        throw new Error('Login response does not include refreshToken.')
+      }
+
       storeAccessToken(nextAccessToken)
+      storeRefreshToken(nextRefreshToken)
       setAccessToken(nextAccessToken)
+      setRefreshToken(nextRefreshToken)
 
       try {
         return await loadMe(nextAccessToken)
@@ -125,7 +160,9 @@ export function AuthProvider({ children }) {
       }
     } catch (error) {
       removeStoredAccessToken()
+      removeStoredRefreshToken()
       setAccessToken('')
+      setRefreshToken('')
       setCurrentUser(null)
       setAuthError(error)
       setAuthReady(true)
@@ -137,6 +174,38 @@ export function AuthProvider({ children }) {
 
   const logout = useCallback(function logout() {
     clearAuth()
+  }, [clearAuth])
+
+  const reissueAccessToken = useCallback(async function reissueAccessToken() {
+    const currentRefreshToken = readStoredRefreshToken()
+
+    if (!currentRefreshToken) {
+      clearAuth()
+      throw new Error('refreshToken is not available.')
+    }
+
+    try {
+      const tokenResponse = await requestReissue({
+        refreshToken: currentRefreshToken,
+      })
+      const nextAccessToken = tokenResponse?.accessToken
+      const nextRefreshToken = tokenResponse?.refreshToken ?? currentRefreshToken
+
+      if (!nextAccessToken) {
+        throw new Error('Reissue response does not include accessToken.')
+      }
+
+      storeAccessToken(nextAccessToken)
+      storeRefreshToken(nextRefreshToken)
+      setAccessToken(nextAccessToken)
+      setRefreshToken(nextRefreshToken)
+      setAuthReady(true)
+
+      return nextAccessToken
+    } catch (error) {
+      clearAuth()
+      throw error
+    }
   }, [clearAuth])
 
   useEffect(() => {
@@ -155,6 +224,7 @@ export function AuthProvider({ children }) {
 
   const value = useMemo(() => ({
     accessToken,
+    refreshToken,
     currentUser,
     authReady,
     authLoading,
@@ -162,16 +232,19 @@ export function AuthProvider({ children }) {
     clearAuth,
     loadMe,
     refreshMe: loadMe,
+    reissueAccessToken,
     login,
     logout,
   }), [
     accessToken,
+    refreshToken,
     currentUser,
     authReady,
     authLoading,
     authError,
     clearAuth,
     loadMe,
+    reissueAccessToken,
     login,
     logout,
   ])

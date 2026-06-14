@@ -10,6 +10,10 @@ export const api = axios.create({
 })
 
 api.interceptors.request.use((config) => {
+  if (config.url === '/api/auth/reissue') {
+    return config
+  }
+
   const accessToken = localStorage.getItem('accessToken')
 
   if (accessToken) {

@@ -9,12 +9,24 @@ export function login(payload) {
 }
 
 export function logout() {
-  // TODO: 백엔드 로그아웃 엔드포인트 확정 후 실제 API 호출로 교체한다.
   return Promise.reject(new Error('TODO: logout endpoint is not confirmed.'))
 }
 
 export function reissue(payload) {
-  // TODO: 백엔드 토큰 재발급 엔드포인트 확정 후 실제 API 호출로 교체한다.
-  void payload
-  return Promise.reject(new Error('TODO: reissue endpoint is not confirmed.'))
+  const refreshToken = payload?.refreshToken
+
+  if (!refreshToken) {
+    return Promise.reject(new Error('refreshToken is required for token reissue.'))
+  }
+
+  return api.post('/api/auth/reissue', { refreshToken }).then((response) => {
+    const data = response?.data?.data ?? response?.data ?? {}
+
+    return {
+      accessToken: data.accessToken ?? null,
+      refreshToken: data.refreshToken ?? refreshToken,
+      tokenType: data.tokenType ?? 'Bearer',
+      accessTokenExpiresIn: data.accessTokenExpiresIn ?? null,
+    }
+  })
 }
