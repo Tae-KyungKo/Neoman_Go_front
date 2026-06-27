@@ -20,6 +20,7 @@ function NoticeDetailPanel({
   noticeId,
   currentUser,
   refreshKey,
+  mode = 'admin',
   onNoticeUpdated,
   onNoticeDeleted,
   onInfo,
@@ -36,7 +37,7 @@ function NoticeDetailPanel({
   const [editContent, setEditContent] = useState('')
   const [processingKey, setProcessingKey] = useState('')
 
-  const isAdmin = currentUser?.role === 'ADMIN'
+  const isAdmin = mode === 'admin' && currentUser?.role === 'ADMIN'
   const accessToken = currentUser?.accessToken ?? ''
   const isNoticeReady = Boolean(noticeId) && loadedNoticeId === noticeId
   const isCurrentError = Boolean(noticeId) && errorNoticeId === noticeId

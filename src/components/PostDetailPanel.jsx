@@ -34,6 +34,7 @@ function PostDetailPanel({
   postId,
   currentUser,
   refreshKey,
+  onPostLoaded,
   onPostUpdated,
   onPostDeleted,
   onInfo,
@@ -92,6 +93,7 @@ function PostDetailPanel({
         setEditTitle(detail?.title ?? '')
         setEditContent(detail?.content ?? '')
         setIsEditingPost(false)
+        onPostLoaded?.(detail)
         onSuccess(`게시글 상세 조회 완료: postId=${postId}`, { postId })
       } catch (error) {
         if (ignore) {
@@ -104,6 +106,7 @@ function PostDetailPanel({
         )
         setPost(null)
         setLoadedPostId(null)
+        onPostLoaded?.(null)
         setPostErrorPostId(postId)
         setPostErrorMessage(
           normalizedError?.message ?? '게시글 상세 조회 중 오류가 발생했습니다.',
@@ -120,7 +123,7 @@ function PostDetailPanel({
     return () => {
       ignore = true
     }
-  }, [postId, refreshKey, onError, onInfo, onSuccess])
+  }, [postId, refreshKey, onError, onInfo, onPostLoaded, onSuccess])
 
   useEffect(() => {
     if (!postId) {
