@@ -8,6 +8,14 @@ export function login(payload) {
   return api.post('/api/auth/login', payload)
 }
 
+export function checkLoginId(loginId) {
+  return api.get(`/api/auth/check-login-id?loginId=${encodeURIComponent(loginId)}`)
+}
+
+export function checkNickname(nickname) {
+  return api.get(`/api/auth/check-nickname?nickname=${encodeURIComponent(nickname)}`)
+}
+
 export function logout() {
   return Promise.reject(new Error('TODO: logout endpoint is not confirmed.'))
 }
