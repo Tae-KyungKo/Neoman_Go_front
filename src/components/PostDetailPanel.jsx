@@ -6,6 +6,11 @@ import {
   updateComment,
 } from '../api/commentApi'
 import { deletePost, getPost, updatePost } from '../api/postApi'
+import {
+  COMMENT_CONTENT_MAX_LENGTH,
+  POST_CONTENT_MAX_LENGTH,
+  POST_TITLE_MAX_LENGTH,
+} from '../constants/inputLimits'
 
 function extractData(response) {
   return response?.data?.data ?? null
@@ -28,6 +33,38 @@ function formatDate(value) {
 
 function getAuthorLabel(item) {
   return item?.authorNickname ?? '-'
+}
+
+function validatePostInput(title, content) {
+  if (!title.trim()) {
+    return '게시글 제목을 입력하세요.'
+  }
+
+  if (title.length > POST_TITLE_MAX_LENGTH) {
+    return `게시글 제목은 ${POST_TITLE_MAX_LENGTH}자 이하여야 합니다.`
+  }
+
+  if (!content.trim()) {
+    return '게시글 본문을 입력하세요.'
+  }
+
+  if (content.length > POST_CONTENT_MAX_LENGTH) {
+    return `게시글 본문은 ${POST_CONTENT_MAX_LENGTH}자 이하여야 합니다.`
+  }
+
+  return ''
+}
+
+function validateCommentInput(content) {
+  if (!content.trim()) {
+    return '댓글 내용을 입력하세요.'
+  }
+
+  if (content.length > COMMENT_CONTENT_MAX_LENGTH) {
+    return `댓글 내용은 ${COMMENT_CONTENT_MAX_LENGTH}자 이하여야 합니다.`
+  }
+
+  return ''
 }
 
 function PostDetailPanel({
@@ -200,6 +237,13 @@ function PostDetailPanel({
       return
     }
 
+    const validationMessage = validatePostInput(editTitle, editContent)
+    if (validationMessage) {
+      setPostErrorPostId(postId)
+      setPostErrorMessage(validationMessage)
+      return
+    }
+
     setProcessingKey('post-update')
     setPostErrorMessage('')
     setPostErrorPostId(null)
@@ -261,7 +305,14 @@ function PostDetailPanel({
   async function handleCreateComment(event) {
     event.preventDefault()
 
-    if (!postId || !isLoggedIn || !newCommentContent.trim()) {
+    if (!postId || !isLoggedIn) {
+      return
+    }
+
+    const validationMessage = validateCommentInput(newCommentContent)
+    if (validationMessage) {
+      setCommentErrorPostId(postId)
+      setCommentErrorMessage(validationMessage)
       return
     }
 
@@ -289,7 +340,14 @@ function PostDetailPanel({
   }
 
   async function handleUpdateComment(commentId) {
-    if (!commentId || !isLoggedIn || !editingCommentContent.trim()) {
+    if (!commentId || !isLoggedIn) {
+      return
+    }
+
+    const validationMessage = validateCommentInput(editingCommentContent)
+    if (validationMessage) {
+      setCommentErrorPostId(postId)
+      setCommentErrorMessage(validationMessage)
       return
     }
 
@@ -437,31 +495,31 @@ function PostDetailPanel({
                 제목
                 <input
                   disabled={processingKey === 'post-update'}
-                  maxLength={100}
                   onChange={(event) => setEditTitle(event.target.value)}
                   type="text"
                   value={editTitle}
                 />
+                <span className="form-help">
+                  {editTitle.length}/{POST_TITLE_MAX_LENGTH}
+                </span>
               </label>
 
               <label>
                 내용
                 <textarea
                   disabled={processingKey === 'post-update'}
-                  maxLength={5000}
                   onChange={(event) => setEditContent(event.target.value)}
                   rows={6}
                   value={editContent}
                 />
+                <span className="form-help">
+                  {editContent.length}/{POST_CONTENT_MAX_LENGTH}
+                </span>
               </label>
 
               <div className="login-actions">
                 <button
-                  disabled={
-                    processingKey === 'post-update' ||
-                    !editTitle.trim() ||
-                    !editContent.trim()
-                  }
+                  disabled={processingKey === 'post-update'}
                   type="submit"
                 >
                   {processingKey === 'post-update' ? '수정 중...' : '수정 저장'}
@@ -524,18 +582,19 @@ function PostDetailPanel({
                         <div className="comment-edit">
                           <textarea
                             disabled={processingKey === `comment-update-${commentId}`}
-                            maxLength={1000}
                             onChange={(event) =>
                               setEditingCommentContent(event.target.value)
                             }
                             rows={3}
                             value={editingCommentContent}
                           />
+                          <span className="form-help">
+                            {editingCommentContent.length}/{COMMENT_CONTENT_MAX_LENGTH}
+                          </span>
                           <div className="application-actions">
                             <button
                               disabled={
-                                processingKey === `comment-update-${commentId}` ||
-                                !editingCommentContent.trim()
+                                processingKey === `comment-update-${commentId}`
                               }
                               onClick={() => handleUpdateComment(commentId)}
                               type="button"
@@ -598,19 +657,20 @@ function PostDetailPanel({
                 새 댓글
                 <textarea
                   disabled={!isLoggedIn || processingKey === 'comment-create'}
-                  maxLength={1000}
                   onChange={(event) => setNewCommentContent(event.target.value)}
                   placeholder="댓글 내용"
                   rows={3}
                   value={newCommentContent}
                 />
+                <span className="form-help">
+                  {newCommentContent.length}/{COMMENT_CONTENT_MAX_LENGTH}
+                </span>
               </label>
               <div className="login-actions">
                 <button
                   disabled={
                     !isLoggedIn ||
-                    processingKey === 'comment-create' ||
-                    !newCommentContent.trim()
+                    processingKey === 'comment-create'
                   }
                   type="submit"
                 >

@@ -1,5 +1,9 @@
 import { useState } from 'react'
 import { createPost } from '../api/postApi'
+import {
+  POST_CONTENT_MAX_LENGTH,
+  POST_TITLE_MAX_LENGTH,
+} from '../constants/inputLimits'
 
 function extractPost(response) {
   return response?.data?.data ?? null
@@ -22,9 +26,27 @@ function PostCreatePanel({
   const canSubmit =
     selectedCategory &&
     isLoggedIn &&
-    title.trim() &&
-    content.trim() &&
     !isSubmitting
+
+  function validatePostInput() {
+    if (!title.trim()) {
+      return '게시글 제목을 입력하세요.'
+    }
+
+    if (title.length > POST_TITLE_MAX_LENGTH) {
+      return `게시글 제목은 ${POST_TITLE_MAX_LENGTH}자 이하여야 합니다.`
+    }
+
+    if (!content.trim()) {
+      return '게시글 본문을 입력하세요.'
+    }
+
+    if (content.length > POST_CONTENT_MAX_LENGTH) {
+      return `게시글 본문은 ${POST_CONTENT_MAX_LENGTH}자 이하여야 합니다.`
+    }
+
+    return ''
+  }
 
   async function handleSubmit(event) {
     event.preventDefault()
@@ -36,6 +58,12 @@ function PostCreatePanel({
 
     if (!isLoggedIn) {
       setErrorMessage('로그인해야 게시글을 작성할 수 있습니다.')
+      return
+    }
+
+    const validationMessage = validatePostInput()
+    if (validationMessage) {
+      setErrorMessage(validationMessage)
       return
     }
 
@@ -100,24 +128,28 @@ function PostCreatePanel({
           제목
           <input
             disabled={!selectedCategory || !isLoggedIn || isSubmitting}
-            maxLength={100}
             onChange={(event) => setTitle(event.target.value)}
             placeholder="게시글 제목"
             type="text"
             value={title}
           />
+          <span className="form-help">
+            {title.length}/{POST_TITLE_MAX_LENGTH}
+          </span>
         </label>
 
         <label>
           내용
           <textarea
             disabled={!selectedCategory || !isLoggedIn || isSubmitting}
-            maxLength={5000}
             onChange={(event) => setContent(event.target.value)}
             placeholder="게시글 내용"
             rows={5}
             value={content}
           />
+          <span className="form-help">
+            {content.length}/{POST_CONTENT_MAX_LENGTH}
+          </span>
         </label>
 
         <div className="login-actions">
