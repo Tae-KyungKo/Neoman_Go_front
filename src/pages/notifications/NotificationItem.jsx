@@ -1,13 +1,4 @@
-function formatDate(value) {
-  if (!value) {
-    return '-'
-  }
-
-  return new Intl.DateTimeFormat('ko-KR', {
-    dateStyle: 'short',
-    timeStyle: 'short',
-  }).format(new Date(value))
-}
+import { formatNotificationDateTime } from '../../utils/notificationTimeFormatter'
 
 function getTargetNavigationLabel(notification) {
   if (notification.targetType === 'TEAM') {
@@ -53,8 +44,8 @@ function NotificationItem({
         <span>type: {notification.type ?? '-'}</span>
         <span>targetType: {notification.targetType ?? '-'}</span>
         <span>targetId: {notification.targetId ?? '-'}</span>
-        <span>createdAt: {formatDate(notification.createdAt)}</span>
-        <span>readAt: {formatDate(notification.readAt)}</span>
+        <span>createdAt: {formatNotificationDateTime(notification.createdAt)}</span>
+        <span>readAt: {formatNotificationDateTime(notification.readAt)}</span>
       </div>
 
       <div className="login-actions">
