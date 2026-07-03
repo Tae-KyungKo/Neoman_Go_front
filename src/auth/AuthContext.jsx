@@ -25,12 +25,12 @@ function extractRefreshToken(response) {
   )
 }
 
-function normalizeUser(me, accessToken, email = '') {
+function normalizeUser(me, accessToken, loginId = '') {
   if (!me) {
     return {
       isLoggedIn: Boolean(accessToken),
       accessToken,
-      email,
+      loginId,
     }
   }
 
@@ -38,7 +38,7 @@ function normalizeUser(me, accessToken, email = '') {
     ...me,
     isLoggedIn: true,
     accessToken,
-    email: me.email || email,
+    loginId: me.loginId || loginId,
   }
 }
 
@@ -153,7 +153,7 @@ export function AuthProvider({ children }) {
           throw error
         }
 
-        const fallbackUser = normalizeUser(null, nextAccessToken, credentials.email)
+        const fallbackUser = normalizeUser(null, nextAccessToken, credentials.loginId)
         setCurrentUser(fallbackUser)
         setAuthReady(true)
         return fallbackUser

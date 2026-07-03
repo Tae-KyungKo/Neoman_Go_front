@@ -39,7 +39,7 @@ function LoginPanel({
   onLoginSubmit,
   onLogoutClick,
 }) {
-  const [email, setEmail] = useState(currentUser?.email ?? '')
+  const [loginId, setLoginId] = useState(currentUser?.loginId ?? '')
   const [password, setPassword] = useState('')
   const [errorMessage, setErrorMessage] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -51,12 +51,12 @@ function LoginPanel({
 
     try {
       const nextUser = onLoginSubmit
-        ? await onLoginSubmit({ email, password })
+        ? await onLoginSubmit({ loginId, password })
         : null
       const response = onLoginSubmit
         ? null
         : await login({
-            email,
+            loginId,
             password,
           })
       const accessToken = nextUser?.accessToken ?? extractAccessToken(response)
@@ -77,12 +77,12 @@ function LoginPanel({
 
       setCurrentUser(nextUser ?? {
         isLoggedIn: true,
-        email,
+        loginId,
         accessToken,
       })
       setPassword('')
       onSuccess('로그인 완료', {
-        email,
+        loginId,
         hasAccessToken: true,
       })
     } catch (error) {
@@ -105,7 +105,7 @@ function LoginPanel({
 
     setCurrentUser({
       isLoggedIn: false,
-      email: '',
+      loginId: '',
       accessToken: '',
     })
     setPassword('')
@@ -129,14 +129,14 @@ function LoginPanel({
 
       <form className="login-form" onSubmit={handleLogin}>
         <label>
-          이메일
+          아이디
           <input
-            autoComplete="email"
+            autoComplete="username"
             disabled={isSubmitting}
-            onChange={(event) => setEmail(event.target.value)}
-            placeholder="user@example.com"
-            type="email"
-            value={email}
+            onChange={(event) => setLoginId(event.target.value)}
+            placeholder="아이디를 입력하세요"
+            type="text"
+            value={loginId}
           />
         </label>
 
@@ -173,7 +173,11 @@ function LoginPanel({
             ? getTokenPreview(currentUser.accessToken)
             : '저장되지 않음'}
         </span>
-        {currentUser?.email ? <span>계정: {currentUser.email}</span> : null}
+        {currentUser?.nickname || currentUser?.loginId || currentUser?.email ? (
+          <span>
+            계정: {currentUser.nickname || currentUser.loginId || currentUser.email}
+          </span>
+        ) : null}
         {currentUser?.role ? <span>Role: {currentUser.role}</span> : null}
       </div>
 
