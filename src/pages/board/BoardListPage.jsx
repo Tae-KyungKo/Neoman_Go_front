@@ -1,7 +1,6 @@
 import { useMemo, useState } from 'react'
 import { useNavigate, useOutletContext } from 'react-router-dom'
 import { useAuth } from '../../auth/useAuth'
-import ActionLogPanel from '../../components/ActionLogPanel'
 import PostCreatePanel from '../../components/PostCreatePanel'
 import PostListPanel from '../../components/PostListPanel'
 import { useActionLog } from '../../hooks/useActionLog'
@@ -10,7 +9,7 @@ function BoardListPage() {
   const { categoryCode, categoryLabel } = useOutletContext()
   const auth = useAuth()
   const navigate = useNavigate()
-  const { logs, addInfoLog, addSuccessLog, addErrorLog } = useActionLog()
+  const { addInfoLog, addSuccessLog, addErrorLog } = useActionLog()
   const [postListRefreshKey, setPostListRefreshKey] = useState(0)
   const selectedCategory = useMemo(() => ({
     code: categoryCode,
@@ -65,7 +64,6 @@ function BoardListPage() {
         selectedPostId={null}
       />
 
-      <ActionLogPanel logs={logs} />
     </section>
   )
 }

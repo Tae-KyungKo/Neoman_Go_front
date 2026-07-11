@@ -1,8 +1,12 @@
 import { fetchEventSource } from '@microsoft/fetch-event-source'
-import { API_BASE_URL } from './client'
+import { buildApiUrl } from './client'
 
 export function isSseAuthError(error) {
-  return error?.status === 401 || error?.status === 403
+  return error?.status === 401
+}
+
+export function isSseForbiddenError(error) {
+  return error?.status === 403
 }
 
 function createSseError(message, response) {
@@ -20,7 +24,7 @@ export function connectNotificationStream({
   onError,
   onClosed,
 }) {
-  return fetchEventSource(`${API_BASE_URL}/api/notifications/stream`, {
+  return fetchEventSource(buildApiUrl('/api/notifications/stream'), {
     headers: {
       Authorization: `Bearer ${accessToken}`,
     },

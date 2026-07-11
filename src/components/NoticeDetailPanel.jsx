@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { deleteNotice, getNotice, updateNotice } from '../api/noticeApi'
+import { isAdminUser } from '../auth/roles'
 
 function extractNotice(response) {
   return response?.data?.data ?? null
@@ -37,7 +38,7 @@ function NoticeDetailPanel({
   const [editContent, setEditContent] = useState('')
   const [processingKey, setProcessingKey] = useState('')
 
-  const isAdmin = mode === 'admin' && currentUser?.role === 'ADMIN'
+  const isAdmin = mode === 'admin' && isAdminUser(currentUser)
   const accessToken = currentUser?.accessToken ?? ''
   const isNoticeReady = Boolean(noticeId) && loadedNoticeId === noticeId
   const isCurrentError = Boolean(noticeId) && errorNoticeId === noticeId

@@ -1,4 +1,5 @@
 import { Navigate, useLocation } from 'react-router-dom'
+import { isAdminUser } from '../auth/roles'
 import { useAuth } from '../auth/useAuth'
 
 function AdminRoute({ children }) {
@@ -27,7 +28,7 @@ function AdminRoute({ children }) {
     )
   }
 
-  if (currentUser.role !== 'ADMIN') {
+  if (!isAdminUser(currentUser)) {
     return (
       <div className="placeholder-panel">
         <h2>접근 권한 없음</h2>

@@ -17,7 +17,7 @@ export function checkNickname(nickname) {
 }
 
 export function logout() {
-  return Promise.reject(new Error('TODO: logout endpoint is not confirmed.'))
+  return api.post('/api/auth/logout')
 }
 
 export function reissue(payload) {
@@ -32,7 +32,7 @@ export function reissue(payload) {
 
     return {
       accessToken: data.accessToken ?? null,
-      refreshToken: data.refreshToken ?? refreshToken,
+      refreshToken: data.refreshToken ?? null,
       tokenType: data.tokenType ?? 'Bearer',
       accessTokenExpiresIn: data.accessTokenExpiresIn ?? null,
     }

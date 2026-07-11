@@ -1,15 +1,19 @@
 import { NavLink } from 'react-router-dom'
+import { isAdminUser } from '../../auth/roles'
+import { useAuth } from '../../auth/useAuth'
 
 function MainNavigation() {
+  const { currentUser } = useAuth()
+
   return (
     <nav className="main-navigation" aria-label="Global navigation">
       <NavLink to="/" end>
-        홈
+        Home
       </NavLink>
-      <NavLink to="/notices">공지사항</NavLink>
+      <NavLink to="/notices">Notices</NavLink>
       <NavLink to="/c/LOL">LOL</NavLink>
-      <NavLink to="/c/SOCCER">축구</NavLink>
-      <NavLink to="/admin">관리자</NavLink>
+      <NavLink to="/c/SOCCER">Soccer</NavLink>
+      {isAdminUser(currentUser) ? <NavLink to="/admin">Admin</NavLink> : null}
     </nav>
   )
 }

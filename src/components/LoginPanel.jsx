@@ -1,17 +1,6 @@
 import { useState } from 'react'
 import { login } from '../api/authApi'
-import {
-  ACCESS_TOKEN_STORAGE_KEY,
-  REFRESH_TOKEN_STORAGE_KEY,
-} from '../auth/AuthContextValue'
-
-function getTokenPreview(accessToken) {
-  if (!accessToken) {
-    return ''
-  }
-
-  return `${accessToken.slice(0, 12)}...`
-}
+import { clearTokens, saveTokens } from '../auth/tokenStorage'
 
 function extractAccessToken(response) {
   return (
@@ -71,8 +60,14 @@ function LoginPanel({
           throw new Error('Login response does not include refreshToken.')
         }
 
-        localStorage.setItem(ACCESS_TOKEN_STORAGE_KEY, accessToken)
-        localStorage.setItem(REFRESH_TOKEN_STORAGE_KEY, refreshToken)
+        const tokenData = response?.data?.data ?? response?.data ?? {}
+
+        saveTokens({
+          accessToken,
+          refreshToken,
+          tokenType: tokenData.tokenType ?? 'Bearer',
+          accessTokenExpiresIn: tokenData.accessTokenExpiresIn,
+        })
       }
 
       setCurrentUser(nextUser ?? {
@@ -81,26 +76,25 @@ function LoginPanel({
         accessToken,
       })
       setPassword('')
-      onSuccess('로그인 완료', {
+      onSuccess?.('Login completed.', {
         loginId,
         hasAccessToken: true,
       })
     } catch (error) {
-      const normalizedError = onError(error)
+      const normalizedError = onError?.(error)
       setErrorMessage(
-        normalizedError?.message ?? '로그인 처리 중 오류가 발생했습니다.',
+        normalizedError?.message ?? 'Login failed.',
       )
     } finally {
       setIsSubmitting(false)
     }
   }
 
-  function handleLogout() {
+  async function handleLogout() {
     if (onLogoutClick) {
-      onLogoutClick()
+      await onLogoutClick()
     } else {
-      localStorage.removeItem(ACCESS_TOKEN_STORAGE_KEY)
-      localStorage.removeItem(REFRESH_TOKEN_STORAGE_KEY)
+      clearTokens()
     }
 
     setCurrentUser({
@@ -110,7 +104,7 @@ function LoginPanel({
     })
     setPassword('')
     setErrorMessage('')
-    onSuccess('로그아웃 완료')
+    onSuccess?.('Logout completed.')
   }
 
   const isLoggedIn = Boolean(currentUser?.isLoggedIn || currentUser?.accessToken)
@@ -120,28 +114,28 @@ function LoginPanel({
       <div className="panel-header">
         <div>
           <h2 id="login-panel-title">Login</h2>
-          <p>JWT Access Token 저장과 인증 API 호출 상태를 확인합니다.</p>
+          <p>Sign in with your NeomanGo account.</p>
         </div>
         <span className={isLoggedIn ? 'auth-on' : 'auth-off'}>
-          {isLoggedIn ? '로그인' : '비로그인'}
+          {isLoggedIn ? 'Logged in' : 'Guest'}
         </span>
       </div>
 
       <form className="login-form" onSubmit={handleLogin}>
         <label>
-          아이디
+          Login ID
           <input
             autoComplete="username"
             disabled={isSubmitting}
             onChange={(event) => setLoginId(event.target.value)}
-            placeholder="아이디를 입력하세요"
+            placeholder="Enter login ID"
             type="text"
             value={loginId}
           />
         </label>
 
         <label>
-          비밀번호
+          Password
           <input
             autoComplete="current-password"
             disabled={isSubmitting}
@@ -154,28 +148,23 @@ function LoginPanel({
 
         <div className="login-actions">
           <button disabled={isSubmitting} type="submit">
-            {isSubmitting ? '로그인 중...' : '로그인'}
+            {isSubmitting ? 'Signing in...' : 'Login'}
           </button>
           <button
-            disabled={!isLoggedIn}
+            disabled={!isLoggedIn || isSubmitting}
             onClick={handleLogout}
             type="button"
           >
-            로그아웃
+            Logout
           </button>
         </div>
       </form>
 
       <div className="auth-state">
-        <span>
-          Access Token:{' '}
-          {currentUser?.accessToken
-            ? getTokenPreview(currentUser.accessToken)
-            : '저장되지 않음'}
-        </span>
+        <span>Access Token: {currentUser?.accessToken ? 'present' : 'none'}</span>
         {currentUser?.nickname || currentUser?.loginId || currentUser?.email ? (
           <span>
-            계정: {currentUser.nickname || currentUser.loginId || currentUser.email}
+            Account: {currentUser.nickname || currentUser.loginId || currentUser.email}
           </span>
         ) : null}
         {currentUser?.role ? <span>Role: {currentUser.role}</span> : null}

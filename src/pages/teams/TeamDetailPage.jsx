@@ -1,7 +1,6 @@
 import { useCallback, useState } from 'react'
 import { useNavigate, useOutletContext, useParams } from 'react-router-dom'
 import { useAuth } from '../../auth/useAuth'
-import ActionLogPanel from '../../components/ActionLogPanel'
 import MyTeamApplicationsPanel from '../../components/MyTeamApplicationsPanel'
 import OwnerTeamApplicationsPanel from '../../components/OwnerTeamApplicationsPanel'
 import TeamApplicationPanel from '../../components/TeamApplicationPanel'
@@ -14,7 +13,7 @@ function TeamDetailPage() {
   const { teamId } = useParams()
   const auth = useAuth()
   const navigate = useNavigate()
-  const { logs, addInfoLog, addSuccessLog, addErrorLog } = useActionLog()
+  const { addInfoLog, addSuccessLog, addErrorLog } = useActionLog()
   const [selectedTeamDetail, setSelectedTeamDetail] = useState(null)
   const [myApplications, setMyApplications] = useState([])
   const [applicationRefreshKey, setApplicationRefreshKey] = useState(0)
@@ -146,7 +145,6 @@ function TeamDetailPage() {
         refreshKey={applicationRefreshKey}
       />
 
-      <ActionLogPanel logs={logs} />
     </section>
   )
 }

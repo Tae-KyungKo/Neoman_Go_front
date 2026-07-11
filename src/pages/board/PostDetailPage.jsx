@@ -1,7 +1,6 @@
 import { useCallback, useState } from 'react'
 import { Link, useNavigate, useOutletContext, useParams } from 'react-router-dom'
 import { useAuth } from '../../auth/useAuth'
-import ActionLogPanel from '../../components/ActionLogPanel'
 import PostDetailPanel from '../../components/PostDetailPanel'
 import { useActionLog } from '../../hooks/useActionLog'
 
@@ -10,7 +9,7 @@ function PostDetailPage() {
   const { postId } = useParams()
   const auth = useAuth()
   const navigate = useNavigate()
-  const { logs, addInfoLog, addSuccessLog, addErrorLog } = useActionLog()
+  const { addInfoLog, addSuccessLog, addErrorLog } = useActionLog()
   const [postDetailRefreshKey, setPostDetailRefreshKey] = useState(0)
   const [loadedPost, setLoadedPost] = useState(null)
   const currentUser = auth.currentUser ?? {
@@ -74,7 +73,6 @@ function PostDetailPage() {
         refreshKey={postDetailRefreshKey}
       />
 
-      <ActionLogPanel logs={logs} />
     </section>
   )
 }

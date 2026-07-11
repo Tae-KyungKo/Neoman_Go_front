@@ -1,14 +1,14 @@
 import { Link, useNavigate } from 'react-router-dom'
+import { isAdminUser } from '../../auth/roles'
 import { useAuth } from '../../auth/useAuth'
-import ActionLogPanel from '../../components/ActionLogPanel'
 import NoticeListPanel from '../../components/NoticeListPanel'
 import { useActionLog } from '../../hooks/useActionLog'
 
 function NoticeListPage() {
   const navigate = useNavigate()
   const { currentUser } = useAuth()
-  const { logs, addInfoLog, addSuccessLog, addErrorLog } = useActionLog()
-  const isAdmin = currentUser?.role === 'ADMIN'
+  const { addInfoLog, addSuccessLog, addErrorLog } = useActionLog()
+  const isAdmin = isAdminUser(currentUser)
 
   function handleSelectNotice(noticeId) {
     navigate(`/notices/${noticeId}`)
@@ -39,7 +39,6 @@ function NoticeListPage() {
         selectedNoticeId={null}
       />
 
-      <ActionLogPanel logs={logs} />
     </section>
   )
 }

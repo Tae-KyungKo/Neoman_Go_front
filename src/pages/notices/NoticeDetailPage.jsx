@@ -1,13 +1,12 @@
 import { Link, useParams } from 'react-router-dom'
 import { useAuth } from '../../auth/useAuth'
-import ActionLogPanel from '../../components/ActionLogPanel'
 import NoticeDetailPanel from '../../components/NoticeDetailPanel'
 import { useActionLog } from '../../hooks/useActionLog'
 
 function NoticeDetailPage() {
   const { noticeId } = useParams()
   const auth = useAuth()
-  const { logs, addInfoLog, addSuccessLog, addErrorLog } = useActionLog()
+  const { addInfoLog, addSuccessLog, addErrorLog } = useActionLog()
   const currentUser = auth.currentUser ?? {
     isLoggedIn: Boolean(auth.accessToken),
     accessToken: auth.accessToken,
@@ -42,7 +41,6 @@ function NoticeDetailPage() {
         refreshKey={noticeId}
       />
 
-      <ActionLogPanel logs={logs} />
     </section>
   )
 }

@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { NavLink, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../auth/useAuth'
 import NotificationBell from '../notifications/NotificationBell'
@@ -6,11 +7,22 @@ import MainNavigation from './MainNavigation'
 function Header() {
   const navigate = useNavigate()
   const { currentUser, logout } = useAuth()
+  const [isLoggingOut, setIsLoggingOut] = useState(false)
   const displayName = currentUser?.nickname || currentUser?.email || 'Guest'
 
-  function handleLogout() {
-    logout()
-    navigate('/', { replace: true })
+  async function handleLogout() {
+    if (isLoggingOut) {
+      return
+    }
+
+    setIsLoggingOut(true)
+
+    try {
+      await logout()
+    } finally {
+      setIsLoggingOut(false)
+      navigate('/', { replace: true })
+    }
   }
 
   return (
@@ -31,16 +43,16 @@ function Header() {
         {currentUser?.role ? <span className="user-chip">{currentUser.role}</span> : null}
         <NotificationBell />
         {currentUser?.isLoggedIn ? (
-          <button type="button" onClick={handleLogout}>
-            로그아웃
+          <button type="button" disabled={isLoggingOut} onClick={handleLogout}>
+            Logout
           </button>
         ) : (
           <>
             <NavLink className="button-link" to="/login">
-              로그인
+              Login
             </NavLink>
             <NavLink className="button-link" to="/signup">
-              회원가입
+              Sign up
             </NavLink>
           </>
         )}

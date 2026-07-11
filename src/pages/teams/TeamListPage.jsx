@@ -1,7 +1,6 @@
 import { useMemo } from 'react'
 import { Link, useNavigate, useOutletContext } from 'react-router-dom'
 import { useAuth } from '../../auth/useAuth'
-import ActionLogPanel from '../../components/ActionLogPanel'
 import TeamListPanel from '../../components/TeamListPanel'
 import { useActionLog } from '../../hooks/useActionLog'
 
@@ -9,7 +8,7 @@ function TeamListPage() {
   const { categoryCode, categoryLabel } = useOutletContext()
   const { currentUser } = useAuth()
   const navigate = useNavigate()
-  const { logs, addInfoLog, addSuccessLog, addErrorLog } = useActionLog()
+  const { addInfoLog, addSuccessLog, addErrorLog } = useActionLog()
   const selectedCategory = useMemo(() => ({
     code: categoryCode,
     label: categoryLabel,
@@ -53,7 +52,6 @@ function TeamListPage() {
         selectedTeamId={null}
       />
 
-      <ActionLogPanel logs={logs} />
     </section>
   )
 }

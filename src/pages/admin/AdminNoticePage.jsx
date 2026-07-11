@@ -1,6 +1,5 @@
 import { useState } from 'react'
 import { useAuth } from '../../auth/useAuth'
-import ActionLogPanel from '../../components/ActionLogPanel'
 import NoticeCreatePanel from '../../components/NoticeCreatePanel'
 import NoticeDetailPanel from '../../components/NoticeDetailPanel'
 import NoticeListPanel from '../../components/NoticeListPanel'
@@ -8,7 +7,7 @@ import { useActionLog } from '../../hooks/useActionLog'
 
 function AdminNoticePage() {
   const auth = useAuth()
-  const { logs, addInfoLog, addSuccessLog, addErrorLog } = useActionLog()
+  const { addInfoLog, addSuccessLog, addErrorLog } = useActionLog()
   const [selectedNoticeId, setSelectedNoticeId] = useState(null)
   const [noticeListRefreshKey, setNoticeListRefreshKey] = useState(0)
   const [noticeDetailRefreshKey, setNoticeDetailRefreshKey] = useState(0)
@@ -78,7 +77,6 @@ function AdminNoticePage() {
         />
       </div>
 
-      <ActionLogPanel logs={logs} />
     </section>
   )
 }

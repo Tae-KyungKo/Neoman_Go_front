@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { createNotice } from '../api/noticeApi'
+import { isAdminUser } from '../auth/roles'
 
 function extractNotice(response) {
   return response?.data?.data ?? null
@@ -17,7 +18,7 @@ function NoticeCreatePanel({
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [errorMessage, setErrorMessage] = useState('')
 
-  const isAdmin = currentUser?.role === 'ADMIN'
+  const isAdmin = isAdminUser(currentUser)
   const accessToken = currentUser?.accessToken ?? ''
   const canSubmit =
     isAdmin && Boolean(accessToken) && title.trim() && content.trim() && !isSubmitting

@@ -19,17 +19,11 @@ export function createTeam(payload) {
 }
 
 export function closeTeam(teamId) {
-  // TODO: 백엔드 팀 마감 엔드포인트 확정 후 실제 API 호출로 교체한다.
-  return Promise.reject(
-    new Error(`TODO: close team endpoint is not confirmed. teamId=${teamId}`),
-  )
+  return api.patch(`/api/teams/${teamId}/close`)
 }
 
 export function deleteTeam(teamId) {
-  // TODO: 백엔드 팀 삭제/DELETED 처리 엔드포인트 확정 후 실제 API 호출로 교체한다.
-  return Promise.reject(
-    new Error(`TODO: delete team endpoint is not confirmed. teamId=${teamId}`),
-  )
+  return api.delete(`/api/teams/${teamId}`)
 }
 
 export function getTeamMembers(teamId) {

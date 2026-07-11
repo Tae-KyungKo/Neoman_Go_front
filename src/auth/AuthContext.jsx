@@ -1,11 +1,21 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { login as requestLogin, reissue as requestReissue } from '../api/authApi'
+import { login as requestLogin, logout as requestLogout } from '../api/authApi'
 import { getCurrentUser } from '../api/userApi'
 import {
-  ACCESS_TOKEN_STORAGE_KEY,
+  refreshTokensOnce,
+  registerAuthFailureHandler,
+  signalLogoutFinished,
+  signalLogoutStarted,
+} from './authSession'
+import {
   AuthContext,
-  REFRESH_TOKEN_STORAGE_KEY,
 } from './AuthContextValue'
+import {
+  clearTokens,
+  getAccessToken,
+  getRefreshToken,
+  saveTokens,
+} from './tokenStorage'
 
 function extractAccessToken(response) {
   return (
@@ -47,41 +57,16 @@ function isAuthFailure(error) {
   return status === 401 || status === 403
 }
 
-function readStoredAccessToken() {
-  return localStorage.getItem(ACCESS_TOKEN_STORAGE_KEY) ?? ''
-}
-
-function readStoredRefreshToken() {
-  return localStorage.getItem(REFRESH_TOKEN_STORAGE_KEY) ?? ''
-}
-
-function removeStoredAccessToken() {
-  localStorage.removeItem(ACCESS_TOKEN_STORAGE_KEY)
-}
-
-function removeStoredRefreshToken() {
-  localStorage.removeItem(REFRESH_TOKEN_STORAGE_KEY)
-}
-
-function storeAccessToken(accessToken) {
-  localStorage.setItem(ACCESS_TOKEN_STORAGE_KEY, accessToken)
-}
-
-function storeRefreshToken(refreshToken) {
-  localStorage.setItem(REFRESH_TOKEN_STORAGE_KEY, refreshToken)
-}
-
 export function AuthProvider({ children }) {
-  const [accessToken, setAccessToken] = useState(readStoredAccessToken)
-  const [refreshToken, setRefreshToken] = useState(readStoredRefreshToken)
+  const [accessToken, setAccessToken] = useState(getAccessToken)
+  const [refreshToken, setRefreshToken] = useState(getRefreshToken)
   const [currentUser, setCurrentUser] = useState(null)
-  const [authReady, setAuthReady] = useState(() => !readStoredAccessToken())
+  const [authReady, setAuthReady] = useState(() => !getAccessToken())
   const [authLoading, setAuthLoading] = useState(false)
   const [authError, setAuthError] = useState(null)
 
   const clearAuth = useCallback(function clearAuth() {
-    removeStoredAccessToken()
-    removeStoredRefreshToken()
+    clearTokens()
     setAccessToken('')
     setRefreshToken('')
     setCurrentUser(null)
@@ -90,7 +75,7 @@ export function AuthProvider({ children }) {
     setAuthLoading(false)
   }, [])
 
-  const loadMe = useCallback(async function loadMe(token = readStoredAccessToken()) {
+  const loadMe = useCallback(async function loadMe(token = getAccessToken()) {
     if (!token) {
       clearAuth()
       return null
@@ -104,7 +89,8 @@ export function AuthProvider({ children }) {
       const me = response?.data?.data
       const nextUser = normalizeUser(me, token)
 
-      setAccessToken(token)
+      setAccessToken(getAccessToken())
+      setRefreshToken(getRefreshToken())
       setCurrentUser(nextUser)
       setAuthReady(true)
       return nextUser
@@ -141,8 +127,14 @@ export function AuthProvider({ children }) {
         throw new Error('Login response does not include refreshToken.')
       }
 
-      storeAccessToken(nextAccessToken)
-      storeRefreshToken(nextRefreshToken)
+      const tokenData = response?.data?.data ?? response?.data ?? {}
+
+      saveTokens({
+        accessToken: nextAccessToken,
+        refreshToken: nextRefreshToken,
+        tokenType: tokenData.tokenType ?? 'Bearer',
+        accessTokenExpiresIn: tokenData.accessTokenExpiresIn,
+      })
       setAccessToken(nextAccessToken)
       setRefreshToken(nextRefreshToken)
 
@@ -159,8 +151,7 @@ export function AuthProvider({ children }) {
         return fallbackUser
       }
     } catch (error) {
-      removeStoredAccessToken()
-      removeStoredRefreshToken()
+      clearTokens()
       setAccessToken('')
       setRefreshToken('')
       setCurrentUser(null)
@@ -172,44 +163,43 @@ export function AuthProvider({ children }) {
     }
   }, [loadMe])
 
-  const logout = useCallback(function logout() {
-    clearAuth()
+  const logout = useCallback(async function logout() {
+    signalLogoutStarted()
+
+    try {
+      await requestLogout()
+    } catch {
+      // Local logout must complete even if the server-side token cleanup fails.
+    } finally {
+      clearAuth()
+      signalLogoutFinished()
+    }
   }, [clearAuth])
 
   const reissueAccessToken = useCallback(async function reissueAccessToken() {
-    const currentRefreshToken = readStoredRefreshToken()
+    const nextAccessToken = await refreshTokensOnce()
+    setAccessToken(nextAccessToken)
+    setRefreshToken(getRefreshToken())
+    setAuthReady(true)
 
-    if (!currentRefreshToken) {
-      clearAuth()
-      throw new Error('refreshToken is not available.')
-    }
-
-    try {
-      const tokenResponse = await requestReissue({
-        refreshToken: currentRefreshToken,
-      })
-      const nextAccessToken = tokenResponse?.accessToken
-      const nextRefreshToken = tokenResponse?.refreshToken ?? currentRefreshToken
-
-      if (!nextAccessToken) {
-        throw new Error('Reissue response does not include accessToken.')
-      }
-
-      storeAccessToken(nextAccessToken)
-      storeRefreshToken(nextRefreshToken)
-      setAccessToken(nextAccessToken)
-      setRefreshToken(nextRefreshToken)
-      setAuthReady(true)
-
-      return nextAccessToken
-    } catch (error) {
-      clearAuth()
-      throw error
-    }
-  }, [clearAuth])
+    return nextAccessToken
+  }, [])
 
   useEffect(() => {
-    const storedAccessToken = readStoredAccessToken()
+    const unregister = registerAuthFailureHandler(() => {
+      setAccessToken('')
+      setRefreshToken('')
+      setCurrentUser(null)
+      setAuthError(null)
+      setAuthReady(true)
+      setAuthLoading(false)
+    })
+
+    return unregister
+  }, [])
+
+  useEffect(() => {
+    const storedAccessToken = getAccessToken()
 
     if (!storedAccessToken) {
       return

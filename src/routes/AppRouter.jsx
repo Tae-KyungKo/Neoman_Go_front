@@ -1,4 +1,4 @@
-import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
+import { BrowserRouter, Route, Routes } from 'react-router-dom'
 import { AuthProvider } from '../auth/AuthContext'
 import AdminLayout from '../layouts/AdminLayout'
 import CategoryLayout from '../layouts/CategoryLayout'
@@ -13,6 +13,7 @@ import HomePage from '../pages/HomePage'
 import LoginPage from '../pages/LoginPage'
 import NoticeDetailRoute from '../pages/notices/NoticeDetailRoute'
 import NoticeListPage from '../pages/notices/NoticeListPage'
+import NotFoundPage from '../pages/NotFoundPage'
 import NotificationPage from '../pages/notifications/NotificationPage'
 import PlaceholderPage from '../pages/PlaceholderPage'
 import SignupPage from '../pages/SignupPage'
@@ -97,7 +98,7 @@ function AppRouter() {
                 element={<AdminNoticePage />}
               />
             </Route>
-            <Route path="*" element={<Navigate to="/" replace />} />
+            <Route path="*" element={<NotFoundPage />} />
           </Route>
         </Routes>
       </AuthProvider>
