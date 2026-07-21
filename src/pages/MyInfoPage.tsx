@@ -1,0 +1,118 @@
+import { useState } from 'react';
+import { Navigate, useNavigate } from 'react-router-dom';
+import MyPageLayout from '../components/MyPageLayout';
+import Button from '../components/Button';
+import ConfirmModal from '../components/ConfirmModal';
+import { useAuth } from '../context/AuthContext';
+import { USE_MOCK_DATA } from '../config/env';
+import './MyInfoPage.css';
+
+export function MyInfoPage() {
+  const { user, login, logout } = useAuth();
+  const navigate = useNavigate();
+  const [withdrawOpen, setWithdrawOpen] = useState(false);
+
+  if (!user) {
+    return <Navigate to="/login" replace />;
+  }
+
+  return (
+    <MyPageLayout active="info">
+      <h1 style={{ font: 'var(--text-title-1)', color: 'var(--label-normal)', margin: '0 0 24px' }}>내 정보</h1>
+      <div className="nm-mp-card">
+        <div className="nm-info-row">
+          <span className="nm-info-row__label">로그인 아이디</span>
+          <span className="nm-info-row__value">{user.loginId ?? '-'}</span>
+        </div>
+        <div className="nm-info-row">
+          <span className="nm-info-row__label">닉네임</span>
+          <span className="nm-info-row__value">{user.nickname}</span>
+        </div>
+        <div className="nm-info-row">
+          <span className="nm-info-row__label">이메일</span>
+          <span className="nm-info-row__value">{user.email ?? '-'}</span>
+        </div>
+        <div className="nm-info-row">
+          <span className="nm-info-row__label">가입일</span>
+          <span className="nm-info-row__value">{user.joinedAt ?? '-'}</span>
+        </div>
+      </div>
+
+      <div style={{ display: 'flex', gap: 8, marginTop: 20 }}>
+        <Button label="정보 수정" variant="outlined" color="assistive" size="md" onClick={() => navigate('/mypage/edit')} />
+        <Button label="비밀번호 변경" variant="outlined" color="assistive" size="md" onClick={() => navigate('/mypage/change-password')} />
+      </div>
+
+      <div className="nm-mp-card" style={{ marginTop: 24 }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div>
+            <div style={{ font: 'var(--text-body-1-semibold)', color: 'var(--label-normal)' }}>로그아웃</div>
+            <div style={{ font: 'var(--text-caption-1-medium)', color: 'var(--label-alternative-2)', marginTop: 2 }}>현재 기기에서 로그아웃해요</div>
+          </div>
+          <Button
+            label="로그아웃"
+            variant="outlined"
+            color="assistive"
+            size="sm"
+            onClick={() => {
+              logout();
+              navigate('/');
+            }}
+          />
+        </div>
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            marginTop: 20,
+            paddingTop: 20,
+            borderTop: '1px solid var(--line-normal-normal)',
+          }}
+        >
+          <div>
+            <div style={{ font: 'var(--text-body-1-semibold)', color: 'var(--status-negative)' }}>회원 탈퇴</div>
+            <div style={{ font: 'var(--text-caption-1-medium)', color: 'var(--label-alternative-2)', marginTop: 2 }}>탈퇴 시 모든 활동 기록이 삭제돼요</div>
+          </div>
+          <Button label="탈퇴하기" variant="outlined" color="assistive" size="sm" onClick={() => setWithdrawOpen(true)} />
+        </div>
+      </div>
+
+      {USE_MOCK_DATA && (
+        <div className="nm-mp-card" style={{ marginTop: 24 }}>
+          <div style={{ font: 'var(--text-caption-1-semibold)', color: 'var(--label-alternative-2)', marginBottom: 8 }}>목업 데이터 테스트용</div>
+          <div style={{ font: 'var(--text-body-2-regular)', color: 'var(--label-alternative-2)', marginBottom: 12 }}>
+            관리자 전용 화면(공지 관리, 관리자 콘솔)을 검토하려면 관리자 권한으로 전환하세요. 실제 백엔드 연동 전까지만 제공되는 임시 기능이에요.
+          </div>
+          <Button
+            label={user.role === 'admin' ? '일반 회원으로 보기' : '관리자 권한으로 보기'}
+            variant="outlined"
+            color="assistive"
+            size="sm"
+            onClick={() => login({ ...user, role: user.role === 'admin' ? 'user' : 'admin' })}
+          />
+          {user.role === 'admin' && (
+            <Button label="관리자 콘솔로 이동" variant="outlined" color="assistive" size="sm" style={{ marginLeft: 8 }} onClick={() => navigate('/admin')} />
+          )}
+        </div>
+      )}
+
+      {withdrawOpen && (
+        <ConfirmModal
+          title="정말 탈퇴하시겠습니까?"
+          description="탈퇴 시 모든 활동 기록이 삭제되며 복구할 수 없습니다."
+          confirmLabel="탈퇴하기"
+          titleColor="var(--status-negative)"
+          onCancel={() => setWithdrawOpen(false)}
+          onConfirm={() => {
+            setWithdrawOpen(false);
+            logout();
+            navigate('/');
+          }}
+        />
+      )}
+    </MyPageLayout>
+  );
+}
+
+export default MyInfoPage;

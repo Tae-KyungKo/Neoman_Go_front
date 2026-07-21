@@ -1,0 +1,19 @@
+.nm-info-row {
+  display: flex;
+  align-items: center;
+  padding: 16px 0;
+  border-bottom: 1px solid var(--line-normal-normal);
+}
+.nm-info-row:last-child {
+  border-bottom: none;
+}
+.nm-info-row__label {
+  width: 140px;
+  flex-shrink: 0;
+  font: var(--text-body-2-medium);
+  color: var(--label-alternative-2);
+}
+.nm-info-row__value {
+  font: var(--text-body-1-medium);
+  color: var(--label-normal);
+}

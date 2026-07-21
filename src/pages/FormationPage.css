@@ -1,0 +1,101 @@
+.nm-fm-shell {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 40px 24px 100px;
+}
+
+.nm-fm-header-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 20px;
+  gap: 16px;
+}
+
+.nm-fm-title {
+  font: var(--text-title-1);
+  color: var(--label-normal);
+  margin: 10px 0 4px;
+}
+.nm-fm-desc {
+  font: var(--text-body-2-regular);
+  color: var(--label-alternative-2);
+  margin: 0;
+}
+
+.nm-court-wrap {
+  position: relative;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  user-select: none;
+  box-shadow: 0 8px 24px rgba(23, 23, 23, 0.14);
+}
+.nm-court-soccer {
+  aspect-ratio: 68 / 105;
+  background: repeating-linear-gradient(90deg, #bcd9c2 0 12.5%, #c7ddc9 12.5% 25%);
+}
+.nm-court-futsal {
+  aspect-ratio: 40 / 20;
+  background: repeating-linear-gradient(0deg, #bcd9c2 0 12.5%, #c7ddc9 12.5% 25%);
+}
+.nm-court-basketball {
+  aspect-ratio: 28 / 15;
+  background: #e6cba8;
+  background-image: repeating-linear-gradient(90deg, rgba(0, 0, 0, 0.03) 0 2px, transparent 2px 40px);
+}
+
+.nm-court-lines {
+  position: absolute;
+  inset: 0;
+}
+
+.nm-player-chip {
+  position: absolute;
+  width: 56px;
+  height: 56px;
+  border-radius: 100px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transform: translate(-50%, -50%);
+  cursor: grab;
+  touch-action: none;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.3);
+  border: 2px solid rgba(255, 255, 255, 0.9);
+  background: var(--primary-normal-3);
+}
+.nm-player-chip:active {
+  cursor: grabbing;
+}
+.nm-player-chip .nm-role-input {
+  width: 38px;
+  background: transparent;
+  border: none;
+  outline: none;
+  text-align: center;
+  font: 800 14px var(--font-pretendard);
+  color: #fff;
+  caret-color: #fff;
+}
+.nm-player-chip .nm-name-input {
+  position: absolute;
+  top: 60px;
+  width: 88px;
+  background: var(--background-normal-normal);
+  border: 1px solid var(--line-normal-normal);
+  outline: none;
+  text-align: center;
+  font: 600 11px var(--font-pretendard);
+  color: var(--label-normal);
+  padding: 2px 4px;
+  border-radius: 6px;
+}
+
+.nm-access-guard {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 120px 40px;
+  text-align: center;
+}

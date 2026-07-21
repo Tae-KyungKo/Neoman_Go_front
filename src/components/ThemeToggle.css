@@ -1,0 +1,13 @@
+.nm-theme-toggle {
+  width: 46px;
+  height: 46px;
+  border-radius: 100px;
+  border: 1px solid var(--line-normal-normal);
+  background: var(--background-normal-normal);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--label-normal);
+  cursor: pointer;
+  flex-shrink: 0;
+}

@@ -1,0 +1,20 @@
+:root {
+  --text-display: 700 36px/1.334 var(--font-pretendard);
+  --text-title-1: 700 28px/1.36 var(--font-pretendard);
+  --text-title-2: 700 24px/1.4 var(--font-pretendard);
+  --text-heading-1: 600 20px/1.4 var(--font-pretendard);
+  --text-heading-2: 600 17px/1.45 var(--font-pretendard);
+  --text-body-1-semibold: 600 16px/1.5 var(--font-pretendard);
+  --text-body-1-medium: 500 16px/1.5 var(--font-pretendard);
+  --text-body-1-regular: 400 16px/1.5 var(--font-pretendard);
+  --text-body-2-semibold: 600 14px/1.45 var(--font-pretendard);
+  --text-body-2-medium: 500 14px/1.45 var(--font-pretendard);
+  --text-body-2-regular: 400 14px/1.45 var(--font-pretendard);
+  --text-caption-1-semibold: 600 13px/1.4 var(--font-pretendard);
+  --text-caption-1-medium: 500 13px/1.4 var(--font-pretendard);
+  --text-caption-2-semibold: 600 11px/1.35 var(--font-pretendard);
+  --text-caption-2-medium: 500 12px/1.35 var(--font-pretendard);
+  --text-mono: 500 14px/1.5 var(--font-mono);
+  --letter-spacing-tight: -0.027em;
+  --letter-spacing-normal: 0.006em;
+}

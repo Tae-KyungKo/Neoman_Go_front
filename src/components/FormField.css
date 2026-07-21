@@ -1,0 +1,14 @@
+.nm-field--error input {
+  border-color: var(--status-negative);
+}
+
+.nm-field__hint {
+  font: var(--text-caption-1-medium);
+  color: var(--label-alternative-2);
+}
+.nm-field__hint--positive {
+  color: var(--status-positive);
+}
+.nm-field__hint--error {
+  color: var(--status-negative);
+}
