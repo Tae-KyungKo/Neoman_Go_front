@@ -16,11 +16,42 @@ export interface AvailabilityResponse {
   available: boolean;
 }
 
+export interface SignupPayload {
+  loginId: string;
+  password: string;
+  passwordConfirm: string;
+  email: string;
+  nickname: string;
+}
+
+export interface SignupResponse {
+  id: number;
+  email: string;
+  nickname: string;
+  role: 'USER' | 'ADMIN';
+  status: string;
+}
+
 export function requestLogin(credentials: LoginCredentials): Promise<TokenResponse> {
   return requestApi<TokenResponse>('/api/auth/login', {
     method: 'POST',
     body: JSON.stringify(credentials),
   });
+}
+
+export function requestSignup(payload: SignupPayload): Promise<SignupResponse> {
+  return requestApi<SignupResponse>('/api/auth/signup', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  });
+}
+
+export function requestLogout(accessToken: string): Promise<void> {
+  return requestApi<void>(
+    '/api/auth/logout',
+    { method: 'POST' },
+    accessToken,
+  );
 }
 
 export function checkLoginId(loginId: string): Promise<AvailabilityResponse> {

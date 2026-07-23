@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
 import MainLayout from './MainLayout';
-import Avatar from './Avatar';
+import Icon from './icons/Icon';
 import { useAuth } from '../context/AuthContext';
 import './MyPageLayout.css';
 
@@ -20,7 +20,9 @@ export function MyPageLayout({ active, children }: { active: string; children: R
       <div className="nm-mp-shell">
         <div className="nm-mp-sidebar">
           <div className="nm-mp-profile-mini">
-            <Avatar size={64} />
+            <div className="nm-mp-profile-icon" aria-hidden="true">
+              <Icon name="Person" size={36} />
+            </div>
             <div style={{ font: 'var(--text-body-1-semibold)', color: 'var(--label-normal)', marginTop: 12 }}>{user?.nickname ?? '게스트'}</div>
           </div>
           <div className="nm-mp-nav">

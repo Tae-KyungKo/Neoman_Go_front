@@ -1,11 +1,12 @@
 import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from 'react';
-import { requestLogin, type LoginCredentials } from '../api/authApi';
+import { requestLogin, requestLogout, type LoginCredentials } from '../api/authApi';
 import { getCurrentUser, type MeResponse } from '../api/userApi';
 import { clearTokens, getAccessToken, saveTokens } from '../auth/tokenStorage';
 
 export type UserRole = 'user' | 'admin';
 
 export interface AuthUser {
+  id?: number;
   nickname: string;
   role: UserRole;
   loginId?: string;
@@ -18,7 +19,7 @@ interface AuthContextValue {
   user: AuthUser | null;
   login: (user: AuthUser) => void;
   authenticate: (credentials: LoginCredentials) => Promise<AuthUser>;
-  logout: () => void;
+  logout: () => Promise<void>;
   authLoading: boolean;
   authReady: boolean;
 }
@@ -31,13 +32,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [authReady, setAuthReady] = useState(() => !getAccessToken());
 
   const login = (nextUser: AuthUser) => setUser(nextUser);
-  const logout = () => {
-    clearTokens();
-    setUser(null);
-    setAuthReady(true);
+  const logout = async () => {
+    const accessToken = getAccessToken();
+
+    try {
+      if (accessToken) {
+        await requestLogout(accessToken);
+      }
+    } finally {
+      clearTokens();
+      setUser(null);
+      setAuthReady(true);
+    }
   };
 
   const normalizeUser = useCallback((me: MeResponse, loginId?: string): AuthUser => ({
+    id: me.id,
     nickname: me.nickname,
     role: me.role === 'ADMIN' ? 'admin' : 'user',
     loginId,

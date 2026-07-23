@@ -43,7 +43,13 @@ export function TeamCreatePage() {
           </div>
         </div>
 
-        <FormField label="팀 이름" placeholder="팀 이름을 입력하세요" value={name} onChange={(e) => setName(e.target.value)} />
+        <FormField
+          label="팀 이름"
+          placeholder="팀 이름을 입력하세요"
+          value={name}
+          maxLength={50}
+          onChange={(e) => setName(e.target.value)}
+        />
 
         <div className="nm-field-row-2">
           <div className="nm-field">
@@ -65,6 +71,7 @@ export function TeamCreatePage() {
           label="팀 소개"
           placeholder="어떤 팀인지, 어떤 팀원을 찾는지 소개해주세요"
           value={description}
+          maxLength={500}
           onChange={(e) => setDescription(e.target.value)}
           style={{ marginBottom: 28 }}
         />

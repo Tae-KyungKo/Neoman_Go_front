@@ -11,6 +11,20 @@ export function MyInfoPage() {
   const { user, login, logout } = useAuth();
   const navigate = useNavigate();
   const [withdrawOpen, setWithdrawOpen] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
+
+  const handleLogout = async () => {
+    if (isLoggingOut) return;
+
+    setIsLoggingOut(true);
+    try {
+      await logout();
+    } catch {
+      // 서버 로그아웃에 실패해도 로컬 인증 정보는 AuthContext에서 제거한다.
+    } finally {
+      navigate('/');
+    }
+  };
 
   if (!user) {
     return <Navigate to="/login" replace />;
@@ -21,7 +35,7 @@ export function MyInfoPage() {
       <h1 style={{ font: 'var(--text-title-1)', color: 'var(--label-normal)', margin: '0 0 24px' }}>내 정보</h1>
       <div className="nm-mp-card">
         <div className="nm-info-row">
-          <span className="nm-info-row__label">로그인 아이디</span>
+          <span className="nm-info-row__label">아이디</span>
           <span className="nm-info-row__value">{user.loginId ?? '-'}</span>
         </div>
         <div className="nm-info-row">
@@ -31,10 +45,6 @@ export function MyInfoPage() {
         <div className="nm-info-row">
           <span className="nm-info-row__label">이메일</span>
           <span className="nm-info-row__value">{user.email ?? '-'}</span>
-        </div>
-        <div className="nm-info-row">
-          <span className="nm-info-row__label">가입일</span>
-          <span className="nm-info-row__value">{user.joinedAt ?? '-'}</span>
         </div>
       </div>
 
@@ -50,14 +60,12 @@ export function MyInfoPage() {
             <div style={{ font: 'var(--text-caption-1-medium)', color: 'var(--label-alternative-2)', marginTop: 2 }}>현재 기기에서 로그아웃해요</div>
           </div>
           <Button
-            label="로그아웃"
+            label={isLoggingOut ? '로그아웃 중...' : '로그아웃'}
             variant="outlined"
             color="assistive"
             size="sm"
-            onClick={() => {
-              logout();
-              navigate('/');
-            }}
+            disabled={isLoggingOut}
+            onClick={handleLogout}
           />
         </div>
         <div
@@ -106,7 +114,7 @@ export function MyInfoPage() {
           onCancel={() => setWithdrawOpen(false)}
           onConfirm={() => {
             setWithdrawOpen(false);
-            logout();
+            void logout().catch(() => undefined);
             navigate('/');
           }}
         />

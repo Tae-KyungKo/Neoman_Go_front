@@ -37,6 +37,7 @@
   color: var(--label-normal);
   line-height: 1.8;
   min-height: 160px;
+  white-space: pre-wrap;
 }
 
 .nm-notice-detail__actions {

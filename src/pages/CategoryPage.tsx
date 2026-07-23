@@ -23,25 +23,30 @@ const PAGE_SIZE = 6;
 export function CategoryPage() {
   const { categoryId = '' } = useParams();
   const navigate = useNavigate();
-  const [sort, setSort] = useState<'latest' | 'members' | 'level'>('latest');
+  const [filter, setFilter] = useState<'latest' | 'casual' | 'competitive'>('latest');
   const [page, setPage] = useState(1);
 
   const category = getCategoryById(categoryId);
   const teams = withMock(getTeamsByCategory(categoryId), []);
 
-  const sorted = useMemo(() => {
-    const copy = [...teams];
-    if (sort === 'members') copy.sort((a, b) => b.roster.length - a.roster.length);
-    if (sort === 'level') copy.sort((a, b) => a.level.localeCompare(b.level));
-    return copy;
-  }, [teams, sort]);
+  const filteredTeams = useMemo(() => {
+    const latestTeams = [...teams].sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+
+    if (filter === 'casual') {
+      return latestTeams.filter((team) => team.level === '즐겜');
+    }
+    if (filter === 'competitive') {
+      return latestTeams.filter((team) => team.level === '빡겜');
+    }
+    return latestTeams;
+  }, [teams, filter]);
 
   if (!category) {
     return <Navigate to="/" replace />;
   }
 
-  const totalPages = Math.max(1, Math.ceil(sorted.length / PAGE_SIZE));
-  const pageItems = sorted.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+  const totalPages = Math.max(1, Math.ceil(filteredTeams.length / PAGE_SIZE));
+  const pageItems = filteredTeams.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   return (
     <MainLayout active="카테고리">
@@ -54,14 +59,6 @@ export function CategoryPage() {
 
       <div className="nm-cat-stat-row">
         <div className="nm-cat-stat">
-          <b>{teams.filter((t) => t.status === 'recruiting').length}</b>
-          <span>모집 중인 팀</span>
-        </div>
-        <div className="nm-cat-stat">
-          <b>{teams.reduce((sum, t) => sum + t.roster.length, 0)}</b>
-          <span>활동 중인 팀원</span>
-        </div>
-        <div className="nm-cat-stat">
           <b>{teams.length}</b>
           <span>등록된 팀</span>
         </div>
@@ -70,10 +67,17 @@ export function CategoryPage() {
       <div className="nm-cat-sort-row">
         <h2 style={{ font: 'var(--text-heading-1)', color: 'var(--label-normal)', margin: 0 }}>모집 중인 팀</h2>
         <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-          <select className="nm-cat-sort-select" value={sort} onChange={(e) => setSort(e.target.value as typeof sort)}>
+          <select
+            className="nm-cat-sort-select"
+            value={filter}
+            onChange={(e) => {
+              setFilter(e.target.value as typeof filter);
+              setPage(1);
+            }}
+          >
             <option value="latest">최신순</option>
-            <option value="members">모집 임박순</option>
-            <option value="level">레벨순</option>
+            <option value="casual">즐겜</option>
+            <option value="competitive">빡겜</option>
           </select>
           <Button label="팀 만들기" variant="solid" color="primary" size="sm" onClick={() => navigate(`/teams/new?category=${category.id}`)} />
         </div>

@@ -6,6 +6,9 @@ import Avatar from '../components/Avatar';
 import StatusBadge from '../components/StatusBadge';
 import Icon from '../components/icons/Icon';
 import TextareaField from '../components/TextareaField';
+import { createTeamApplication } from '../api/teamApi';
+import { getApiErrorMessage } from '../api/httpClient';
+import { getAccessToken } from '../auth/tokenStorage';
 import { getCategoryById } from '../data/categories';
 import { getTeamById } from '../data/teams';
 import { useAuth } from '../context/AuthContext';
@@ -21,8 +24,43 @@ export function TeamDetailPage() {
   const role = useTeamRole(Number(teamId));
   const [applyOpen, setApplyOpen] = useState(false);
   const [applyMessage, setApplyMessage] = useState('');
+  const [applyError, setApplyError] = useState<string | null>(null);
+  const [isApplying, setIsApplying] = useState(false);
 
   const team = withMock(getTeamById(Number(teamId)), undefined);
+
+  const handleApply = async () => {
+    if (!team) {
+      return;
+    }
+
+    if (role === 'guest') {
+      navigate('/login');
+      return;
+    }
+
+    const accessToken = getAccessToken();
+    if (!accessToken || isApplying) {
+      return;
+    }
+
+    setApplyError(null);
+    setIsApplying(true);
+
+    try {
+      await createTeamApplication(
+        team.id,
+        { message: applyMessage.trim() || null },
+        accessToken,
+      );
+      setApplyMessage('');
+      setApplyOpen(false);
+    } catch (error) {
+      setApplyError(getApiErrorMessage(error, '가입 신청에 실패했습니다.'));
+    } finally {
+      setIsApplying(false);
+    }
+  };
 
   if (!team) {
     return (
@@ -75,7 +113,6 @@ export function TeamDetailPage() {
               <div key={i} className="nm-roster-row">
                 <Avatar size={32} />
                 <span style={{ font: 'var(--text-body-2-semibold)', color: 'var(--label-normal)' }}>{m.name}</span>
-                <span style={{ font: 'var(--text-caption-1-medium)', color: 'var(--label-alternative-2)' }}>{m.level}</span>
                 <span className={'nm-roster-role' + (m.role === '팀장' ? ' nm-roster-role--leader' : '')}>{m.role}</span>
               </div>
             ))}
@@ -153,17 +190,20 @@ export function TeamDetailPage() {
               value={applyMessage}
               onChange={(e) => setApplyMessage(e.target.value)}
               placeholder="간단한 자기소개와 활동 가능 시간을 알려주세요"
+              maxLength={500}
               style={{ minHeight: 100, marginBottom: 8 }}
             />
             {role === 'guest' && <div className="nm-field__hint nm-field__hint--error" style={{ marginBottom: 8 }}>신청하려면 로그인이 필요해요.</div>}
+            {applyError && <div className="nm-field__hint nm-field__hint--error" style={{ marginBottom: 8 }}>{applyError}</div>}
             <div className="nm-modal-card__actions" style={{ marginTop: 12 }}>
               <Button label="취소" variant="outlined" color="assistive" size="md" onClick={() => setApplyOpen(false)} />
               <Button
-                label={role === 'guest' ? '로그인하러 가기' : '신청하기'}
+                label={role === 'guest' ? '로그인하러 가기' : isApplying ? '신청 중...' : '신청하기'}
                 variant="solid"
                 color="primary"
                 size="md"
-                onClick={() => (role === 'guest' ? navigate('/login') : setApplyOpen(false))}
+                disabled={isApplying}
+                onClick={handleApply}
               />
             </div>
           </div>

@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import AuthLayout from '../components/AuthLayout';
 import FormField from '../components/FormField';
 import Button from '../components/Button';
-import { checkLoginId, checkNickname } from '../api/authApi';
+import { checkLoginId, checkNickname, requestSignup } from '../api/authApi';
 import { getApiErrorMessage } from '../api/httpClient';
 import {
   validateLoginId,
@@ -26,6 +26,8 @@ export function SignupPage() {
   const [nicknameAvailability, setNicknameAvailability] = useState<AvailabilityState>('idle');
   const [loginIdAvailabilityMessage, setLoginIdAvailabilityMessage] = useState<string | null>(null);
   const [nicknameAvailabilityMessage, setNicknameAvailabilityMessage] = useState<string | null>(null);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate();
 
   const loginIdError = validateLoginId(loginId);
@@ -106,10 +108,27 @@ export function SignupPage() {
     loginIdAvailability === 'available' &&
     nicknameAvailability === 'available';
 
-  const handleSubmit = (event: FormEvent) => {
+  const handleSubmit = async (event: FormEvent) => {
     event.preventDefault();
-    if (!isValid) return;
-    navigate('/login');
+    if (!isValid || isSubmitting) return;
+
+    setSubmitError(null);
+    setIsSubmitting(true);
+
+    try {
+      await requestSignup({
+        loginId,
+        password,
+        passwordConfirm,
+        email,
+        nickname,
+      });
+      navigate('/login');
+    } catch (error) {
+      setSubmitError(getApiErrorMessage(error, '회원가입에 실패했습니다.'));
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -180,14 +199,19 @@ export function SignupPage() {
             }
             style={{ marginBottom: 4 }}
           />
+          {submitError && (
+            <div className="nm-field__hint nm-field__hint--error" role="alert">
+              {submitError}
+            </div>
+          )}
           <Button
-            label="가입하기"
+            label={isSubmitting ? '가입 중...' : '가입하기'}
             variant="solid"
             color="primary"
             size="lg"
             fullWidth
             type="submit"
-            disabled={!isValid}
+            disabled={!isValid || isSubmitting}
             style={{ marginTop: 16 }}
           />
         </form>
