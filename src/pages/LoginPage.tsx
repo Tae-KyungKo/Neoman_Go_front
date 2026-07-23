@@ -4,28 +4,30 @@ import AuthLayout from '../components/AuthLayout';
 import FormField from '../components/FormField';
 import Button from '../components/Button';
 import { useAuth } from '../context/AuthContext';
-import { findMockUser } from '../data/mockUsers';
+import { getApiErrorMessage } from '../api/httpClient';
 import './AuthForm.css';
 
 export function LoginPage() {
   const [loginId, setLoginId] = useState('');
   const [password, setPassword] = useState('');
   const [formError, setFormError] = useState<string | null>(null);
-  const { login } = useAuth();
+  const { authenticate, authLoading } = useAuth();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const expired = searchParams.get('expired') === '1';
 
-  const handleSubmit = (event: FormEvent) => {
+  const handleSubmit = async (event: FormEvent) => {
     event.preventDefault();
-    const matched = findMockUser(loginId, password);
-    if (!matched) {
-      setFormError('아이디 또는 비밀번호를 확인해 주세요.');
-      return;
+
+    try {
+      setFormError(null);
+      await authenticate({ loginId, password });
+      navigate('/');
+    } catch (error) {
+      setFormError(
+        getApiErrorMessage(error, '아이디 또는 비밀번호를 확인해 주세요.'),
+      );
     }
-    setFormError(null);
-    login(matched);
-    navigate('/');
   };
 
   return (
@@ -52,22 +54,41 @@ export function LoginPage() {
         <h1 className="nm-form-card__title">로그인</h1>
         <form onSubmit={handleSubmit}>
           <FormField
-            label="로그인 아이디"
+            label="아이디"
             placeholder="아이디를 입력하세요"
             value={loginId}
+            autoComplete="username"
+            maxLength={12}
             hintStatus={formError ? 'error' : 'default'}
-            onChange={(e) => setLoginId(e.target.value)}
+            onChange={(e) => {
+              setLoginId(e.target.value);
+              setFormError(null);
+            }}
           />
           <FormField
             label="비밀번호"
             type="password"
             placeholder="비밀번호를 입력하세요"
             value={password}
+            autoComplete="current-password"
+            maxLength={16}
             hint={formError ?? undefined}
             hintStatus={formError ? 'error' : 'default'}
-            onChange={(e) => setPassword(e.target.value)}
+            onChange={(e) => {
+              setPassword(e.target.value);
+              setFormError(null);
+            }}
           />
-          <Button label="로그인" variant="solid" color="primary" size="lg" fullWidth type="submit" style={{ marginTop: 4 }} />
+          <Button
+            label={authLoading ? '로그인 중...' : '로그인'}
+            variant="solid"
+            color="primary"
+            size="lg"
+            fullWidth
+            type="submit"
+            disabled={authLoading || !loginId || !password}
+            style={{ marginTop: 4 }}
+          />
         </form>
         <div style={{ textAlign: 'center', marginTop: 14 }}>
           <Link to="/find-password" style={{ font: 'var(--text-caption-1-medium)', color: 'var(--label-alternative-2)' }}>

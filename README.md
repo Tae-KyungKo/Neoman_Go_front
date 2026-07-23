@@ -1,5 +1,26 @@
 # React + TypeScript + Vite
 
+## Local Backend 연결
+
+개발 모드에서는 저장소의 `.env.development` 설정을 사용한다.
+
+```text
+VITE_API_BASE_URL=http://localhost:8080
+VITE_USE_MOCK_DATA=false
+```
+
+Backend를 `http://localhost:8080`에서 먼저 실행한 뒤 Frontend를 실행한다.
+
+```bash
+npm install
+npm run dev
+```
+
+Frontend 개발 서버는 Backend CORS 기준과 일치하도록
+`http://localhost:5173`에서 실행되며, 해당 port를 사용할 수 없으면 다른 port로
+자동 변경하지 않고 즉시 실패한다. 개인별 override가 필요하면 Git에 포함되지 않는
+`.env.development.local`을 사용한다.
+
 This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
 
 Currently, two official plugins are available:

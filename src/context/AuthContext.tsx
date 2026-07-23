@@ -1,4 +1,7 @@
-import { createContext, useContext, useState, type ReactNode } from 'react';
+import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from 'react';
+import { requestLogin, type LoginCredentials } from '../api/authApi';
+import { getCurrentUser, type MeResponse } from '../api/userApi';
+import { clearTokens, getAccessToken, saveTokens } from '../auth/tokenStorage';
 
 export type UserRole = 'user' | 'admin';
 
@@ -8,23 +11,104 @@ export interface AuthUser {
   loginId?: string;
   email?: string;
   joinedAt?: string;
+  status?: 'ACTIVE' | 'DELETED';
 }
 
 interface AuthContextValue {
   user: AuthUser | null;
   login: (user: AuthUser) => void;
+  authenticate: (credentials: LoginCredentials) => Promise<AuthUser>;
   logout: () => void;
+  authLoading: boolean;
+  authReady: boolean;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
+  const [authLoading, setAuthLoading] = useState(false);
+  const [authReady, setAuthReady] = useState(() => !getAccessToken());
 
   const login = (nextUser: AuthUser) => setUser(nextUser);
-  const logout = () => setUser(null);
+  const logout = () => {
+    clearTokens();
+    setUser(null);
+    setAuthReady(true);
+  };
 
-  return <AuthContext.Provider value={{ user, login, logout }}>{children}</AuthContext.Provider>;
+  const normalizeUser = useCallback((me: MeResponse, loginId?: string): AuthUser => ({
+    nickname: me.nickname,
+    role: me.role === 'ADMIN' ? 'admin' : 'user',
+    loginId,
+    email: me.email,
+    status: me.status,
+  }), []);
+
+  const authenticate = useCallback(async (credentials: LoginCredentials): Promise<AuthUser> => {
+    setAuthLoading(true);
+
+    try {
+      const tokens = await requestLogin(credentials);
+      saveTokens(tokens);
+
+      const me = await getCurrentUser(tokens.accessToken);
+      const authenticatedUser = normalizeUser(me, credentials.loginId);
+      setUser(authenticatedUser);
+      setAuthReady(true);
+
+      return authenticatedUser;
+    } catch (error) {
+      clearTokens();
+      setUser(null);
+      setAuthReady(true);
+      throw error;
+    } finally {
+      setAuthLoading(false);
+    }
+  }, [normalizeUser]);
+
+  useEffect(() => {
+    const accessToken = getAccessToken();
+
+    if (!accessToken) {
+      return;
+    }
+
+    let active = true;
+    setAuthLoading(true);
+
+    getCurrentUser(accessToken)
+      .then((me) => {
+        if (active) {
+          setUser(normalizeUser(me));
+        }
+      })
+      .catch(() => {
+        if (active) {
+          clearTokens();
+          setUser(null);
+        }
+      })
+      .finally(() => {
+        if (active) {
+          setAuthLoading(false);
+          setAuthReady(true);
+        }
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [normalizeUser]);
+
+  return (
+    <AuthContext.Provider
+      value={{ user, login, authenticate, logout, authLoading, authReady }}
+    >
+      {authReady ? children : null}
+    </AuthContext.Provider>
+  );
 }
 
 export function useAuth() {

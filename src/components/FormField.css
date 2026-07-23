@@ -2,6 +2,22 @@
   border-color: var(--status-negative);
 }
 
+.nm-field__control {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.nm-field__control input {
+  min-width: 0;
+  flex: 1;
+}
+
+.nm-field__control .nm-button {
+  height: 48px;
+  flex-shrink: 0;
+}
+
 .nm-field__hint {
   font: var(--text-caption-1-medium);
   color: var(--label-alternative-2);

@@ -16,6 +16,7 @@ dist-ssr
 .env
 .env.*
 !.env.example
+!.env.development
 !.env.development.example
 !.env.production.example
 
