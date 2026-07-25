@@ -8,6 +8,11 @@ interface ApiEnvelope<T> {
   errors?: unknown;
 }
 
+export interface ApiFieldError {
+  field: string;
+  message: string;
+}
+
 export class ApiError extends Error {
   status: number | null;
   code: string;
@@ -79,4 +84,28 @@ export async function requestApi<T>(
 
 export function getApiErrorMessage(error: unknown, fallback: string): string {
   return error instanceof ApiError ? error.message : fallback;
+}
+
+export function getApiFieldErrors(error: unknown): Record<string, string> {
+  if (!(error instanceof ApiError) || !Array.isArray(error.errors)) {
+    return {};
+  }
+
+  return error.errors.reduce<Record<string, string>>((fieldErrors, item) => {
+    if (
+      item &&
+      typeof item === 'object' &&
+      'field' in item &&
+      'message' in item &&
+      typeof item.field === 'string' &&
+      typeof item.message === 'string' &&
+      !fieldErrors[item.field]
+    ) {
+      const field = item.field.includes('.')
+        ? item.field.slice(item.field.lastIndexOf('.') + 1)
+        : item.field;
+      fieldErrors[field] = item.message;
+    }
+    return fieldErrors;
+  }, {});
 }

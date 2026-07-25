@@ -41,6 +41,75 @@ export interface TeamMemberListResponse {
   status: string;
 }
 
+export interface TeamMemberResponse {
+  id: number;
+  userId: number;
+  nickname: string;
+  role: 'OWNER' | 'MEMBER';
+}
+
+export interface TeamDetailResponse {
+  id: number;
+  name: string;
+  description: string;
+  category: string;
+  level: 'CASUAL' | 'COMPETITIVE';
+  location: string;
+  activityTime: string;
+  memberCount: number;
+  status: 'RECRUITING' | 'CLOSED';
+  owner: TeamMemberResponse;
+  members: TeamMemberResponse[];
+  createdAt: string;
+}
+
+export interface TeamSummaryResponse {
+  id: number;
+  name: string;
+  category: string;
+  level: 'CASUAL' | 'COMPETITIVE';
+  location: string;
+  activityTime: string;
+  memberCount: number;
+  status: 'RECRUITING' | 'CLOSED';
+  ownerId: number;
+  ownerNickname: string;
+  createdAt: string;
+}
+
+export interface TeamPageResponse {
+  content: TeamSummaryResponse[];
+  number: number;
+  size: number;
+  totalElements: number;
+  totalPages: number;
+  first: boolean;
+  last: boolean;
+  empty: boolean;
+}
+
+export function getTeam(teamId: number): Promise<TeamDetailResponse> {
+  return requestApi<TeamDetailResponse>(`/api/teams/${teamId}`);
+}
+
+export function getTeams(
+  category: string,
+  level: 'CASUAL' | 'COMPETITIVE' | null,
+  page: number,
+  size = 6,
+): Promise<TeamPageResponse> {
+  const query = new URLSearchParams({
+    category,
+    page: String(page),
+    size: String(size),
+    sort: 'createdAt,desc',
+  });
+  if (level) {
+    query.set('level', level);
+  }
+  return requestApi<TeamPageResponse>(`/api/teams?${query.toString()}`);
+}
+
 export function createTeamApplication(
   teamId: number,
   payload: TeamApplicationPayload,

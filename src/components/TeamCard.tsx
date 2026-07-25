@@ -1,10 +1,20 @@
 import { useNavigate } from 'react-router-dom';
 import Icon from './icons/Icon';
-import type { Team } from '../data/teams';
 import { getCategoryById } from '../data/categories';
 import './TeamCard.css';
 
-export function TeamCard({ team }: { team: Team }) {
+export interface TeamCardModel {
+  id: number;
+  categoryId: string;
+  name: string;
+  level: string;
+  location: string;
+  time: string;
+  memberCount?: number;
+  roster?: unknown[];
+}
+
+export function TeamCard({ team }: { team: TeamCardModel }) {
   const navigate = useNavigate();
   const category = getCategoryById(team.categoryId);
 
@@ -31,7 +41,9 @@ export function TeamCard({ team }: { team: Team }) {
             <Icon name="Persons" size={14} />
             팀원
           </span>
-          <span className="nm-team-card__member-count">{team.roster.length}명</span>
+          <span className="nm-team-card__member-count">
+            {team.memberCount ?? team.roster?.length ?? 0}명
+          </span>
         </div>
       </div>
     </div>

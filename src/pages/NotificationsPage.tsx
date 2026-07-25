@@ -6,7 +6,6 @@ import Icon, { type IconName } from '../components/icons/Icon';
 import Pagination from '../components/Pagination';
 import {
   getNotifications,
-  getUnreadNotificationCount,
   markAllNotificationsAsRead,
   markNotificationAsRead,
   type NotificationResponse,
@@ -15,6 +14,7 @@ import {
 import { getApiErrorMessage } from '../api/httpClient';
 import { getAccessToken } from '../auth/tokenStorage';
 import { useAuth } from '../context/AuthContext';
+import { useNotifications } from '../context/NotificationContext';
 import './NotificationsPage.css';
 
 function getNotificationIcon(type: NotificationType): IconName {
@@ -63,9 +63,14 @@ function formatNotificationTime(createdAt: string): string {
 
 export function NotificationsPage() {
   const { user } = useAuth();
+  const {
+    unreadCount,
+    latestNotification,
+    setUnreadCount,
+    decrementUnreadCount,
+  } = useNotifications();
   const navigate = useNavigate();
   const [notifications, setNotifications] = useState<NotificationResponse[]>([]);
-  const [unreadCount, setUnreadCount] = useState(0);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [isLoading, setIsLoading] = useState(true);
@@ -83,15 +88,11 @@ export function NotificationsPage() {
     setIsLoading(true);
     setLoadError(null);
 
-    Promise.all([
-      getNotifications(page - 1, accessToken),
-      getUnreadNotificationCount(accessToken),
-    ])
-      .then(([notificationPage, countResponse]) => {
+    getNotifications(page - 1, accessToken)
+      .then((notificationPage) => {
         if (!active) return;
         setNotifications(notificationPage.content);
         setTotalPages(Math.max(1, notificationPage.totalPages));
-        setUnreadCount(countResponse.unreadCount);
       })
       .catch((error) => {
         if (!active) return;
@@ -109,6 +110,16 @@ export function NotificationsPage() {
       active = false;
     };
   }, [page]);
+
+  useEffect(() => {
+    if (!latestNotification || page !== 1) return;
+    setNotifications((list) => {
+      if (list.some((notification) => notification.id === latestNotification.id)) {
+        return list;
+      }
+      return [latestNotification, ...list];
+    });
+  }, [latestNotification, page]);
 
   const notificationGroups = useMemo(() => {
     const groups = new Map<string, NotificationResponse[]>();
@@ -151,7 +162,7 @@ export function NotificationsPage() {
         setNotifications((list) =>
           list.map((item) => (item.id === notification.id ? { ...item, read: true } : item)),
         );
-        setUnreadCount((count) => Math.max(0, count - 1));
+        decrementUnreadCount();
       } catch {
         // 읽음 처리 실패가 알림 대상 페이지 이동을 막지는 않는다.
       }

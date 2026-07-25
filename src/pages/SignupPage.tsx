@@ -4,7 +4,7 @@ import AuthLayout from '../components/AuthLayout';
 import FormField from '../components/FormField';
 import Button from '../components/Button';
 import { checkLoginId, checkNickname, requestSignup } from '../api/authApi';
-import { getApiErrorMessage } from '../api/httpClient';
+import { getApiErrorMessage, getApiFieldErrors } from '../api/httpClient';
 import {
   validateLoginId,
   validatePassword,
@@ -27,6 +27,7 @@ export function SignupPage() {
   const [loginIdAvailabilityMessage, setLoginIdAvailabilityMessage] = useState<string | null>(null);
   const [nicknameAvailabilityMessage, setNicknameAvailabilityMessage] = useState<string | null>(null);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [serverFieldErrors, setServerFieldErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate();
 
@@ -113,6 +114,7 @@ export function SignupPage() {
     if (!isValid || isSubmitting) return;
 
     setSubmitError(null);
+    setServerFieldErrors({});
     setIsSubmitting(true);
 
     try {
@@ -125,7 +127,11 @@ export function SignupPage() {
       });
       navigate('/login');
     } catch (error) {
-      setSubmitError(getApiErrorMessage(error, '회원가입에 실패했습니다.'));
+      const nextFieldErrors = getApiFieldErrors(error);
+      setServerFieldErrors(nextFieldErrors);
+      if (Object.keys(nextFieldErrors).length === 0) {
+        setSubmitError(getApiErrorMessage(error, '회원가입에 실패했습니다.'));
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -145,9 +151,10 @@ export function SignupPage() {
               setLoginId(e.target.value);
               setLoginIdAvailability('idle');
               setLoginIdAvailabilityMessage(null);
+              setServerFieldErrors((errors) => ({ ...errors, loginId: '' }));
             }}
-            hint={loginIdHint}
-            hintStatus={loginIdHintStatus}
+            hint={serverFieldErrors.loginId ?? loginIdHint}
+            hintStatus={serverFieldErrors.loginId ? 'error' : loginIdHintStatus}
             action={
               <Button
                 label={loginIdAvailability === 'checking' ? '확인 중...' : '중복 확인'}
@@ -163,19 +170,34 @@ export function SignupPage() {
             label="비밀번호"
             type="password"
             value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            hint={passwordError ?? '영문·숫자·특수문자 포함 8자 이상'}
-            hintStatus={passwordError ? 'error' : 'default'}
+            onChange={(e) => {
+              setPassword(e.target.value);
+              setServerFieldErrors((errors) => ({ ...errors, password: '' }));
+            }}
+            hint={serverFieldErrors.password ?? passwordError ?? '영문·숫자·특수문자 포함 8자 이상'}
+            hintStatus={serverFieldErrors.password || passwordError ? 'error' : 'default'}
           />
           <FormField
             label="비밀번호 확인"
             type="password"
             value={passwordConfirm}
-            onChange={(e) => setPasswordConfirm(e.target.value)}
-            hint={passwordConfirmError ?? (passwordConfirm ? '비밀번호가 일치해요' : undefined)}
-            hintStatus={passwordConfirmError ? 'error' : passwordConfirm ? 'positive' : 'default'}
+            onChange={(e) => {
+              setPasswordConfirm(e.target.value);
+              setServerFieldErrors((errors) => ({ ...errors, passwordConfirm: '' }));
+            }}
+            hint={serverFieldErrors.passwordConfirm ?? passwordConfirmError ?? (passwordConfirm ? '비밀번호가 일치해요' : undefined)}
+            hintStatus={serverFieldErrors.passwordConfirm || passwordConfirmError ? 'error' : passwordConfirm ? 'positive' : 'default'}
           />
-          <FormField label="이메일" value={email} onChange={(e) => setEmail(e.target.value)} hint={emailError ?? undefined} hintStatus={emailError ? 'error' : 'default'} />
+          <FormField
+            label="이메일"
+            value={email}
+            onChange={(e) => {
+              setEmail(e.target.value);
+              setServerFieldErrors((errors) => ({ ...errors, email: '' }));
+            }}
+            hint={serverFieldErrors.email ?? emailError ?? undefined}
+            hintStatus={serverFieldErrors.email || emailError ? 'error' : 'default'}
+          />
           <FormField
             label="닉네임"
             value={nickname}
@@ -184,9 +206,10 @@ export function SignupPage() {
               setNickname(e.target.value);
               setNicknameAvailability('idle');
               setNicknameAvailabilityMessage(null);
+              setServerFieldErrors((errors) => ({ ...errors, nickname: '' }));
             }}
-            hint={nicknameHint}
-            hintStatus={nicknameHintStatus}
+            hint={serverFieldErrors.nickname ?? nicknameHint}
+            hintStatus={serverFieldErrors.nickname ? 'error' : nicknameHintStatus}
             action={
               <Button
                 label={nicknameAvailability === 'checking' ? '확인 중...' : '중복 확인'}

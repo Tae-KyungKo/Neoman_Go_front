@@ -17,20 +17,27 @@ export function FormField({
   ...rest
 }: FormFieldProps) {
   const fieldId = id ?? `field-${label}`;
+  const hintId = `${fieldId}-hint`;
   const isError = hintStatus === 'error';
+  const inputProps = {
+    id: fieldId,
+    'aria-invalid': isError || undefined,
+    'aria-describedby': hint ? hintId : undefined,
+    ...rest,
+  };
 
   return (
     <div className={'nm-field' + (isError ? ' nm-field--error' : '')}>
       <label htmlFor={fieldId}>{label}</label>
       {action ? (
         <div className="nm-field__control">
-          <input id={fieldId} {...rest} />
+          <input {...inputProps} />
           {action}
         </div>
       ) : (
-        <input id={fieldId} {...rest} />
+        <input {...inputProps} />
       )}
-      {hint && <div className={`nm-field__hint nm-field__hint--${hintStatus}`}>{hint}</div>}
+      {hint && <div id={hintId} className={`nm-field__hint nm-field__hint--${hintStatus}`}>{hint}</div>}
     </div>
   );
 }

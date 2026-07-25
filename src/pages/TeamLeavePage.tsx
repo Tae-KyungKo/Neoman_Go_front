@@ -4,16 +4,15 @@ import MainLayout from '../components/MainLayout';
 import Button from '../components/Button';
 import ConfirmModal from '../components/ConfirmModal';
 import {
+  getTeam,
   getTeamMembers,
   leaveTeam,
+  type TeamDetailResponse,
   type TeamMemberListResponse,
 } from '../api/teamApi';
 import { ApiError, getApiErrorMessage } from '../api/httpClient';
 import { getAccessToken } from '../auth/tokenStorage';
 import { useAuth } from '../context/AuthContext';
-import { getCategoryById } from '../data/categories';
-import { getTeamById } from '../data/teams';
-import { withMock } from '../lib/mockData';
 import '../styles/teamShared.css';
 
 export function TeamLeavePage() {
@@ -23,12 +22,11 @@ export function TeamLeavePage() {
   const numericTeamId = Number(teamId);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [members, setMembers] = useState<TeamMemberListResponse[]>([]);
+  const [team, setTeam] = useState<TeamDetailResponse | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isLeaving, setIsLeaving] = useState(false);
   const [requiresDelegation, setRequiresDelegation] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
-
-  const team = withMock(getTeamById(numericTeamId), undefined);
 
   useEffect(() => {
     const accessToken = getAccessToken();
@@ -41,15 +39,20 @@ export function TeamLeavePage() {
     setIsLoading(true);
     setLoadError(null);
 
-    getTeamMembers(numericTeamId, accessToken)
-      .then((response) => {
+    Promise.all([
+      getTeam(numericTeamId),
+      getTeamMembers(numericTeamId, accessToken),
+    ])
+      .then(([teamResponse, memberResponse]) => {
         if (active) {
-          setMembers(response);
+          setTeam(teamResponse);
+          setMembers(memberResponse);
         }
       })
       .catch((error) => {
         if (active) {
           setMembers([]);
+          setTeam(null);
           setLoadError(getApiErrorMessage(error, '팀원 정보를 불러오지 못했습니다.'));
         }
       })
@@ -68,6 +71,14 @@ export function TeamLeavePage() {
     return <Navigate to="/login" replace />;
   }
 
+  if (isLoading && !team) {
+    return (
+      <MainLayout active="팀 찾기">
+        <div className="nm-empty-state">팀 정보를 불러오는 중이에요.</div>
+      </MainLayout>
+    );
+  }
+
   if (!team) {
     return (
       <MainLayout active="팀 찾기">
@@ -81,7 +92,6 @@ export function TeamLeavePage() {
     return <Navigate to={`/teams/${team.id}`} replace />;
   }
 
-  const category = getCategoryById(team.categoryId);
   const isLeader = currentMember?.role === 'OWNER';
   const mustDelegateFirst = isLeader && (members.length > 1 || requiresDelegation);
 
@@ -110,7 +120,7 @@ export function TeamLeavePage() {
     <MainLayout active="팀 찾기">
       <div style={{ maxWidth: 640, margin: '0 auto', padding: '64px 24px 120px' }}>
         <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
-          <span className="nm-team-tag">{category?.ko}</span>
+          <span className="nm-team-tag">{team.category}</span>
         </div>
         <h1 style={{ font: 'var(--text-title-1)', color: 'var(--label-normal)', margin: '0 0 28px' }}>{team.name} — 설정</h1>
 

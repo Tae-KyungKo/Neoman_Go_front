@@ -5,19 +5,18 @@ import Button from '../components/Button';
 import Avatar from '../components/Avatar';
 import {
   approveTeamApplication,
+  getTeam,
   getTeamApplicationsForOwner,
   getTeamMembers,
   kickTeamMember,
   rejectTeamApplication,
   type TeamApplicationOwnerResponse,
+  type TeamDetailResponse,
   type TeamMemberListResponse,
 } from '../api/teamApi';
 import { ApiError, getApiErrorMessage } from '../api/httpClient';
 import { getAccessToken } from '../auth/tokenStorage';
 import { useAuth } from '../context/AuthContext';
-import { getCategoryById } from '../data/categories';
-import { getTeamById } from '../data/teams';
-import { withMock } from '../lib/mockData';
 import '../styles/teamShared.css';
 
 export function TeamManagePage() {
@@ -27,12 +26,11 @@ export function TeamManagePage() {
   const numericTeamId = Number(teamId);
   const [requests, setRequests] = useState<TeamApplicationOwnerResponse[]>([]);
   const [members, setMembers] = useState<TeamMemberListResponse[]>([]);
+  const [team, setTeam] = useState<TeamDetailResponse | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [processingApplicationId, setProcessingApplicationId] = useState<number | null>(null);
   const [kickingMemberId, setKickingMemberId] = useState<number | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
-
-  const team = withMock(getTeamById(numericTeamId), undefined);
 
   useEffect(() => {
     const accessToken = getAccessToken();
@@ -46,11 +44,13 @@ export function TeamManagePage() {
     setLoadError(null);
 
     Promise.all([
+      getTeam(numericTeamId),
       getTeamApplicationsForOwner(numericTeamId, accessToken),
       getTeamMembers(numericTeamId, accessToken),
     ])
-      .then(([applicationResponse, memberResponse]) => {
+      .then(([teamResponse, applicationResponse, memberResponse]) => {
         if (!active) return;
+        setTeam(teamResponse);
         setRequests(applicationResponse);
         setMembers(memberResponse);
       })
@@ -62,6 +62,7 @@ export function TeamManagePage() {
         }
         setRequests([]);
         setMembers([]);
+        setTeam(null);
         setLoadError(getApiErrorMessage(error, '팀 관리 정보를 불러오지 못했습니다.'));
       })
       .finally(() => {
@@ -79,6 +80,14 @@ export function TeamManagePage() {
     return <Navigate to="/login" replace />;
   }
 
+  if (isLoading && !team) {
+    return (
+      <MainLayout active="팀 찾기">
+        <div className="nm-empty-state">팀 관리 정보를 불러오는 중이에요.</div>
+      </MainLayout>
+    );
+  }
+
   if (!team) {
     return (
       <MainLayout active="팀 찾기">
@@ -86,8 +95,6 @@ export function TeamManagePage() {
       </MainLayout>
     );
   }
-
-  const category = getCategoryById(team.categoryId);
 
   const handleApplication = async (
     applicationId: number,
@@ -155,10 +162,7 @@ export function TeamManagePage() {
     <MainLayout active="팀 찾기">
       <div style={{ maxWidth: 800, margin: '0 auto', padding: '56px 24px 100px' }}>
         <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
-          <span className="nm-team-tag">{category?.ko}</span>
-          <span className="nm-team-tag" style={{ background: 'var(--background-normal-alternative)', color: 'var(--label-alternative-2)' }}>
-            {team.level}
-          </span>
+          <span className="nm-team-tag">{team.category}</span>
         </div>
         <h1 style={{ font: 'var(--text-title-1)', color: 'var(--label-normal)', margin: '0 0 28px' }}>팀 관리 — {team.name}</h1>
 

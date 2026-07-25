@@ -4,13 +4,14 @@ import AuthLayout from '../components/AuthLayout';
 import FormField from '../components/FormField';
 import Button from '../components/Button';
 import { useAuth } from '../context/AuthContext';
-import { getApiErrorMessage } from '../api/httpClient';
+import { getApiErrorMessage, getApiFieldErrors } from '../api/httpClient';
 import './AuthForm.css';
 
 export function LoginPage() {
   const [loginId, setLoginId] = useState('');
   const [password, setPassword] = useState('');
   const [formError, setFormError] = useState<string | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const { authenticate, authLoading } = useAuth();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -21,12 +22,17 @@ export function LoginPage() {
 
     try {
       setFormError(null);
+      setFieldErrors({});
       await authenticate({ loginId, password });
       navigate('/');
     } catch (error) {
-      setFormError(
-        getApiErrorMessage(error, '아이디 또는 비밀번호를 확인해 주세요.'),
-      );
+      const nextFieldErrors = getApiFieldErrors(error);
+      setFieldErrors(nextFieldErrors);
+      if (Object.keys(nextFieldErrors).length === 0) {
+        setFormError(
+          getApiErrorMessage(error, '아이디 또는 비밀번호를 확인해 주세요.'),
+        );
+      }
     }
   };
 
@@ -59,10 +65,12 @@ export function LoginPage() {
             value={loginId}
             autoComplete="username"
             maxLength={12}
-            hintStatus={formError ? 'error' : 'default'}
+            hint={fieldErrors.loginId}
+            hintStatus={fieldErrors.loginId ? 'error' : 'default'}
             onChange={(e) => {
               setLoginId(e.target.value);
               setFormError(null);
+              setFieldErrors((errors) => ({ ...errors, loginId: '' }));
             }}
           />
           <FormField
@@ -72,11 +80,12 @@ export function LoginPage() {
             value={password}
             autoComplete="current-password"
             maxLength={16}
-            hint={formError ?? undefined}
-            hintStatus={formError ? 'error' : 'default'}
+            hint={fieldErrors.password ?? formError ?? undefined}
+            hintStatus={fieldErrors.password || formError ? 'error' : 'default'}
             onChange={(e) => {
               setPassword(e.target.value);
               setFormError(null);
+              setFieldErrors((errors) => ({ ...errors, password: '' }));
             }}
           />
           <Button

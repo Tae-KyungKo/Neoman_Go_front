@@ -1,5 +1,6 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useNotifications } from '../context/NotificationContext';
 import Avatar from './Avatar';
 import Button from './Button';
 import ThemeToggle from './ThemeToggle';
@@ -19,6 +20,7 @@ interface HeaderProps {
 
 export function Header({ active }: HeaderProps) {
   const { user } = useAuth();
+  const { unreadCount } = useNotifications();
   const navigate = useNavigate();
 
   return (
@@ -51,7 +53,11 @@ export function Header({ active }: HeaderProps) {
           <>
             <button type="button" className="nm-header__bell" aria-label="알림함" onClick={() => navigate('/mypage/notifications')}>
               <Icon name="Bell" size={20} />
-              <span className="nm-header__bell-dot" />
+              {unreadCount > 0 && (
+                <span className="nm-header__bell-badge">
+                  {unreadCount > 99 ? '99+' : unreadCount}
+                </span>
+              )}
             </button>
             <button type="button" onClick={() => navigate('/mypage/info')} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', display: 'flex' }} aria-label="마이페이지">
               <Avatar size={40} />

@@ -1,12 +1,13 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Navigate, useNavigate, useParams } from 'react-router-dom';
 import MainLayout from '../components/MainLayout';
 import Button from '../components/Button';
 import TeamCard from '../components/TeamCard';
 import Icon from '../components/icons/Icon';
 import { getCategoryById } from '../data/categories';
-import { getTeamsByCategory } from '../data/teams';
-import { withMock } from '../lib/mockData';
+import { getTeams, type TeamSummaryResponse } from '../api/teamApi';
+import { getApiErrorMessage } from '../api/httpClient';
+import type { TeamCardModel } from '../components/TeamCard';
 import './CategoryPage.css';
 
 const GRADIENTS: Record<string, string> = {
@@ -25,28 +26,78 @@ export function CategoryPage() {
   const navigate = useNavigate();
   const [filter, setFilter] = useState<'latest' | 'casual' | 'competitive'>('latest');
   const [page, setPage] = useState(1);
+  const [teams, setTeams] = useState<TeamSummaryResponse[]>([]);
+  const [registeredTeamCount, setRegisteredTeamCount] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
+  const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
   const category = getCategoryById(categoryId);
-  const teams = withMock(getTeamsByCategory(categoryId), []);
 
-  const filteredTeams = useMemo(() => {
-    const latestTeams = [...teams].sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+  useEffect(() => {
+    setFilter('latest');
+    setPage(1);
+  }, [categoryId]);
 
-    if (filter === 'casual') {
-      return latestTeams.filter((team) => team.level === '즐겜');
+  useEffect(() => {
+    if (!category) {
+      setIsLoading(false);
+      return;
     }
-    if (filter === 'competitive') {
-      return latestTeams.filter((team) => team.level === '빡겜');
-    }
-    return latestTeams;
-  }, [teams, filter]);
+
+    let active = true;
+    const level =
+      filter === 'casual'
+        ? 'CASUAL'
+        : filter === 'competitive'
+          ? 'COMPETITIVE'
+          : null;
+
+    setIsLoading(true);
+    setLoadError(null);
+
+    getTeams(category.apiCode, level, page - 1, PAGE_SIZE)
+      .then((response) => {
+        if (!active) return;
+        setTeams(response.content);
+        if (filter === 'latest') {
+          setRegisteredTeamCount(response.totalElements);
+        }
+        setTotalPages(Math.max(1, response.totalPages));
+      })
+      .catch((error) => {
+        if (!active) return;
+        setTeams([]);
+        if (filter === 'latest') {
+          setRegisteredTeamCount(0);
+        }
+        setTotalPages(1);
+        setLoadError(getApiErrorMessage(error, '팀 목록을 불러오지 못했습니다.'));
+      })
+      .finally(() => {
+        if (active) {
+          setIsLoading(false);
+        }
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [category, filter, page]);
 
   if (!category) {
     return <Navigate to="/" replace />;
   }
 
-  const totalPages = Math.max(1, Math.ceil(filteredTeams.length / PAGE_SIZE));
-  const pageItems = filteredTeams.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+  const pageItems: TeamCardModel[] = teams.map((team) => ({
+    id: team.id,
+    categoryId: category.id,
+    name: team.name,
+    level: team.level === 'CASUAL' ? '즐겜' : '빡겜',
+    location: team.location,
+    time: team.activityTime,
+    memberCount: team.memberCount,
+  }));
 
   return (
     <MainLayout active="카테고리">
@@ -59,7 +110,7 @@ export function CategoryPage() {
 
       <div className="nm-cat-stat-row">
         <div className="nm-cat-stat">
-          <b>{teams.length}</b>
+          <b>{registeredTeamCount}</b>
           <span>등록된 팀</span>
         </div>
       </div>
@@ -83,7 +134,11 @@ export function CategoryPage() {
         </div>
       </div>
 
-      {pageItems.length === 0 ? (
+      {isLoading ? (
+        <div className="nm-empty-state">팀 목록을 불러오는 중이에요.</div>
+      ) : loadError ? (
+        <div className="nm-empty-state">{loadError}</div>
+      ) : pageItems.length === 0 ? (
         <div style={{ padding: '80px 48px', textAlign: 'center', font: 'var(--text-body-1-regular)', color: 'var(--label-alternative-3)' }}>
           아직 등록된 팀이 없어요.
         </div>
@@ -95,7 +150,7 @@ export function CategoryPage() {
         </div>
       )}
 
-      {totalPages > 1 && (
+      {!isLoading && !loadError && totalPages > 1 && (
         <div className="nm-pagination" style={{ paddingBottom: 40 }}>
           <button className="nm-page-btn" onClick={() => setPage((p) => Math.max(1, p - 1))} aria-label="이전 페이지">
             <Icon name="ChevronLeft" size={14} />

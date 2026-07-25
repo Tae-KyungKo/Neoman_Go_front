@@ -1,6 +1,7 @@
 import { Navigate, Route, Routes } from 'react-router-dom';
 import { ThemeProvider } from './context/ThemeContext';
 import { AuthProvider } from './context/AuthContext';
+import { NotificationProvider } from './context/NotificationContext';
 import HomePage from './pages/HomePage';
 import CategoryPage from './pages/CategoryPage';
 import TeamFindPage from './pages/TeamFindPage';
@@ -33,7 +34,8 @@ function App() {
   return (
     <ThemeProvider>
       <AuthProvider>
-        <Routes>
+        <NotificationProvider>
+          <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/categories/:categoryId" element={<CategoryPage />} />
           <Route path="/teams" element={<TeamFindPage />} />
@@ -62,7 +64,8 @@ function App() {
           <Route path="/notices" element={<NoticeListPage />} />
           <Route path="/notices/:id" element={<NoticeDetailPage />} />
           <Route path="*" element={<NotFoundPage />} />
-        </Routes>
+          </Routes>
+        </NotificationProvider>
       </AuthProvider>
     </ThemeProvider>
   );
