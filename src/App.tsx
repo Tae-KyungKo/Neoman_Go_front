@@ -58,6 +58,7 @@ function App() {
           <Route path="/forbidden" element={<ForbiddenPage />} />
           <Route path="/board" element={<BoardListPage />} />
           <Route path="/board/new" element={<BoardWritePage />} />
+          <Route path="/board/:postId/edit" element={<BoardWritePage />} />
           <Route path="/board/:postId" element={<PostDetailPage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/signup" element={<SignupPage />} />
