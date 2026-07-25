@@ -2,11 +2,13 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Icon from './icons/Icon';
 import { CATEGORIES } from '../data/categories';
+import { useNotifications } from '../context/NotificationContext';
 import './BottomBar.css';
 
 export function BottomBar() {
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();
+  const { unreadCount } = useNotifications();
 
   return (
     <div className="nm-bottombar">
@@ -44,7 +46,7 @@ export function BottomBar() {
         </button>
         <button type="button" className="nm-bottombar__item" onClick={() => navigate('/mypage/notifications')}>
           알림함
-          <span className="nm-bottombar__item-dot" />
+          {unreadCount > 0 && <span className="nm-bottombar__item-dot" />}
         </button>
       </div>
     </div>

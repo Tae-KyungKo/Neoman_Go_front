@@ -89,6 +89,18 @@ export interface TeamPageResponse {
   empty: boolean;
 }
 
+export interface MyTeamSummaryResponse {
+  id: number;
+  name: string;
+  category: string;
+  level: 'CASUAL' | 'COMPETITIVE';
+  location: string;
+  activityTime: string;
+  memberCount: number;
+  status: 'RECRUITING' | 'CLOSED';
+  myRole: 'OWNER' | 'MEMBER';
+}
+
 export type TeamCategory =
   | 'LOL'
   | 'VALORANT'
@@ -178,6 +190,10 @@ export function getMyTeamApplications(
     {},
     accessToken,
   );
+}
+
+export function getMyTeams(accessToken: string): Promise<MyTeamSummaryResponse[]> {
+  return requestApi<MyTeamSummaryResponse[]>('/api/me/teams', {}, accessToken);
 }
 
 export function cancelTeamApplication(
