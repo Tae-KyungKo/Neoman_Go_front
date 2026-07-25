@@ -1,4 +1,5 @@
-.nm-field--error input {
+.nm-field--error input,
+.nm-field--error textarea {
   border-color: var(--status-negative);
 }
 

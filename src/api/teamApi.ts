@@ -88,6 +88,48 @@ export interface TeamPageResponse {
   empty: boolean;
 }
 
+export type TeamCategory =
+  | 'LOL'
+  | 'VALORANT'
+  | 'PUBG'
+  | 'FIFA'
+  | 'SOCCER_FUTSAL'
+  | 'BASKETBALL';
+
+export interface TeamCreatePayload {
+  name: string;
+  description: string | null;
+  category: TeamCategory;
+  level: 'CASUAL' | 'COMPETITIVE';
+  location: string;
+  activityTime: string;
+}
+
+export interface TeamCreateResponse {
+  id: number;
+  name: string;
+  description: string | null;
+  category: TeamCategory;
+  level: 'CASUAL' | 'COMPETITIVE';
+  location: string;
+  activityTime: string;
+  status: 'RECRUITING' | 'CLOSED';
+}
+
+export function createTeam(
+  payload: TeamCreatePayload,
+  accessToken: string,
+): Promise<TeamCreateResponse> {
+  return requestApi<TeamCreateResponse>(
+    '/api/teams',
+    {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    },
+    accessToken,
+  );
+}
+
 export function getTeam(teamId: number): Promise<TeamDetailResponse> {
   return requestApi<TeamDetailResponse>(`/api/teams/${teamId}`);
 }
