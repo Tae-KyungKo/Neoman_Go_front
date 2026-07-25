@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Navigate, useNavigate } from 'react-router-dom';
+import { Navigate } from 'react-router-dom';
 import MyPageLayout from '../components/MyPageLayout';
 import Chip from '../components/Chip';
 import Button from '../components/Button';
@@ -12,9 +12,7 @@ import {
 import { getApiErrorMessage } from '../api/httpClient';
 import { getAccessToken } from '../auth/tokenStorage';
 import { useAuth } from '../context/AuthContext';
-import { getCategoryById } from '../data/categories';
-import { getTeamById, MY_TEAMS } from '../data/teams';
-import { withMock } from '../lib/mockData';
+import { getCategoryByApiCode } from '../data/categories';
 import '../styles/teamShared.css';
 
 type Tab = 'teams' | 'apps';
@@ -36,7 +34,6 @@ const STATUS_LABEL: Record<ApplicationStatus, string> = {
 
 export function MyTeamPage() {
   const { user } = useAuth();
-  const navigate = useNavigate();
   const [tab, setTab] = useState<Tab>('teams');
   const [applications, setApplications] = useState<TeamApplicationSummaryResponse[]>([]);
   const [isLoadingApplications, setIsLoadingApplications] = useState(true);
@@ -81,8 +78,6 @@ export function MyTeamPage() {
     return <Navigate to="/login" replace />;
   }
 
-  const myTeams = withMock(MY_TEAMS, []);
-
   const handleCancel = async (applicationId: number) => {
     const accessToken = getAccessToken();
     if (!accessToken || cancelingApplicationId !== null) return;
@@ -111,7 +106,7 @@ export function MyTeamPage() {
       <h1 style={{ font: 'var(--text-title-1)', color: 'var(--label-normal)', margin: '0 0 24px' }}>My TEAM</h1>
       <div style={{ display: 'flex', gap: 8, marginBottom: 20 }}>
         <Chip active={tab === 'teams'} onClick={() => setTab('teams')}>
-          소속된 팀 ({myTeams.length})
+          소속된 팀
         </Chip>
         <Chip active={tab === 'apps'} onClick={() => setTab('apps')}>
           신청 현황 ({applications.length})
@@ -125,27 +120,10 @@ export function MyTeamPage() {
       )}
 
       <div className="nm-list-card">
-        {tab === 'teams' &&
-          myTeams.map((entry) => {
-            const team = getTeamById(entry.teamId);
-            if (!team) return null;
-            const category = getCategoryById(team.categoryId);
-            return (
-              <div key={entry.teamId} style={{ display: 'flex', alignItems: 'center', gap: 16, padding: '18px 20px', borderBottom: '1px solid var(--line-normal-normal)' }}>
-                <span className="nm-team-tag">{category?.ko}</span>
-                <span style={{ flex: 1, font: 'var(--text-body-1-medium)', color: 'var(--label-normal)' }}>{team.name}</span>
-                <span style={{ font: 'var(--text-caption-1-semibold)', color: entry.role === '팀장' ? 'var(--primary-normal-3)' : 'var(--label-alternative-2)' }}>
-                  {entry.role}
-                </span>
-                <Button label="팀 페이지" variant="outlined" color="assistive" size="sm" onClick={() => navigate(`/teams/${team.id}`)} />
-              </div>
-            );
-          })}
-
         {tab === 'apps' &&
           !isLoadingApplications &&
           applications.map((application) => {
-            const category = getCategoryById(application.category);
+            const category = getCategoryByApiCode(application.category);
             return (
               <div key={application.applicationId} style={{ display: 'flex', alignItems: 'center', gap: 16, padding: '18px 20px', borderBottom: '1px solid var(--line-normal-normal)' }}>
                 <span className="nm-team-tag">{category?.ko ?? application.category}</span>
@@ -165,7 +143,9 @@ export function MyTeamPage() {
             );
           })}
 
-        {tab === 'teams' && myTeams.length === 0 && <div className="nm-empty-state">아직 내역이 없어요.</div>}
+        {tab === 'teams' && (
+          <div className="nm-empty-state">소속 팀 조회 API가 준비되면 이곳에 표시됩니다.</div>
+        )}
         {tab === 'apps' && isLoadingApplications && <div className="nm-empty-state">신청 현황을 불러오는 중이에요.</div>}
         {tab === 'apps' && !isLoadingApplications && applications.length === 0 && <div className="nm-empty-state">아직 내역이 없어요.</div>}
       </div>

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import TextareaField from './TextareaField';
 import ConfirmModal from './ConfirmModal';
-import { REPORT_REASONS } from '../data/posts';
+import { REPORT_REASONS } from '../constants/board';
 import './ReportModal.css';
 
 interface ReportModalProps {
@@ -10,7 +10,7 @@ interface ReportModalProps {
 }
 
 export function ReportModal({ onCancel, onSubmit }: ReportModalProps) {
-  const [reason, setReason] = useState(REPORT_REASONS[0]);
+  const [reason, setReason] = useState<(typeof REPORT_REASONS)[number]>(REPORT_REASONS[0]);
   const [detail, setDetail] = useState('');
 
   return (

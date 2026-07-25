@@ -4,7 +4,7 @@ import MainLayout from '../components/MainLayout';
 import FormField from '../components/FormField';
 import TextareaField from '../components/TextareaField';
 import Button from '../components/Button';
-import { BOARD_TABS, type BoardTab } from '../data/posts';
+import { BOARD_TABS, type BoardTab } from '../constants/board';
 
 export function BoardWritePage() {
   const navigate = useNavigate();

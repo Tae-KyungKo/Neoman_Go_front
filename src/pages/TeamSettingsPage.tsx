@@ -8,15 +8,15 @@ import {
   closeTeam,
   delegateTeamOwner,
   deleteTeam,
+  getTeam,
   getTeamMembers,
+  type TeamDetailResponse,
   type TeamMemberListResponse,
 } from '../api/teamApi';
 import { ApiError, getApiErrorMessage } from '../api/httpClient';
 import { getAccessToken } from '../auth/tokenStorage';
 import { useAuth } from '../context/AuthContext';
-import { getCategoryById } from '../data/categories';
-import { getTeamById } from '../data/teams';
-import { withMock } from '../lib/mockData';
+import { getCategoryByApiCode } from '../data/categories';
 import '../styles/teamShared.css';
 
 type Dialog = 'delegate' | 'close' | 'delete' | null;
@@ -33,8 +33,7 @@ export function TeamSettingsPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [processingDialog, setProcessingDialog] = useState<Exclude<Dialog, null> | null>(null);
   const [settingsError, setSettingsError] = useState<string | null>(null);
-
-  const team = withMock(getTeamById(numericTeamId), undefined);
+  const [team, setTeam] = useState<TeamDetailResponse | null>(null);
 
   useEffect(() => {
     const accessToken = getAccessToken();
@@ -47,10 +46,11 @@ export function TeamSettingsPage() {
     setIsLoading(true);
     setSettingsError(null);
 
-    getTeamMembers(numericTeamId, accessToken)
-      .then((response) => {
+    Promise.all([getTeam(numericTeamId), getTeamMembers(numericTeamId, accessToken)])
+      .then(([teamResponse, memberResponse]) => {
         if (active) {
-          setMembers(response);
+          setTeam(teamResponse);
+          setMembers(memberResponse);
         }
       })
       .catch((error) => {
@@ -74,10 +74,20 @@ export function TeamSettingsPage() {
     return <Navigate to="/login" replace />;
   }
 
+  if (isLoading) {
+    return (
+      <MainLayout active="팀 찾기">
+        <div className="nm-empty-state">팀 설정을 불러오는 중이에요.</div>
+      </MainLayout>
+    );
+  }
+
   if (!team) {
     return (
       <MainLayout active="팀 찾기">
-        <div className="nm-empty-state">존재하지 않는 팀입니다.</div>
+        <div className="nm-empty-state">
+          {settingsError ?? '존재하지 않는 팀입니다.'}
+        </div>
       </MainLayout>
     );
   }
@@ -87,7 +97,7 @@ export function TeamSettingsPage() {
     return <Navigate to="/forbidden" replace />;
   }
 
-  const category = getCategoryById(team.categoryId);
+  const category = getCategoryByApiCode(team.category);
   const otherMembers = members.filter((member) => member.role === 'MEMBER');
 
   const handleApiError = (error: unknown, fallback: string) => {
@@ -161,9 +171,7 @@ export function TeamSettingsPage() {
           </div>
         )}
 
-        {isLoading ? (
-          <div className="nm-empty-state">팀 설정을 불러오는 중이에요.</div>
-        ) : currentMember?.role === 'OWNER' ? (
+        {currentMember?.role === 'OWNER' ? (
           <>
             <div className="nm-settings-card">
               <div className="nm-settings-card__title">팀장 위임</div>

@@ -10,8 +10,9 @@ import { getApiErrorMessage, getApiFieldErrors } from '../api/httpClient';
 import { getAccessToken } from '../auth/tokenStorage';
 import { useAuth } from '../context/AuthContext';
 import { CATEGORIES } from '../data/categories';
-import type { TeamLevel } from '../data/teams';
 import './TeamCreatePage.css';
+
+type TeamLevel = '즐겜' | '빡겜';
 
 export function TeamCreatePage() {
   const [searchParams] = useSearchParams();

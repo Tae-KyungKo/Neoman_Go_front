@@ -4,11 +4,10 @@ import MyPageLayout from '../components/MyPageLayout';
 import Button from '../components/Button';
 import ConfirmModal from '../components/ConfirmModal';
 import { useAuth } from '../context/AuthContext';
-import { USE_MOCK_DATA } from '../config/env';
 import './MyInfoPage.css';
 
 export function MyInfoPage() {
-  const { user, login, logout } = useAuth();
+  const { user, logout } = useAuth();
   const navigate = useNavigate();
   const [withdrawOpen, setWithdrawOpen] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
@@ -85,25 +84,6 @@ export function MyInfoPage() {
           <Button label="탈퇴하기" variant="outlined" color="assistive" size="sm" onClick={() => setWithdrawOpen(true)} />
         </div>
       </div>
-
-      {USE_MOCK_DATA && (
-        <div className="nm-mp-card" style={{ marginTop: 24 }}>
-          <div style={{ font: 'var(--text-caption-1-semibold)', color: 'var(--label-alternative-2)', marginBottom: 8 }}>목업 데이터 테스트용</div>
-          <div style={{ font: 'var(--text-body-2-regular)', color: 'var(--label-alternative-2)', marginBottom: 12 }}>
-            관리자 전용 화면(공지 관리, 관리자 콘솔)을 검토하려면 관리자 권한으로 전환하세요. 실제 백엔드 연동 전까지만 제공되는 임시 기능이에요.
-          </div>
-          <Button
-            label={user.role === 'admin' ? '일반 회원으로 보기' : '관리자 권한으로 보기'}
-            variant="outlined"
-            color="assistive"
-            size="sm"
-            onClick={() => login({ ...user, role: user.role === 'admin' ? 'user' : 'admin' })}
-          />
-          {user.role === 'admin' && (
-            <Button label="관리자 콘솔로 이동" variant="outlined" color="assistive" size="sm" style={{ marginLeft: 8 }} onClick={() => navigate('/admin')} />
-          )}
-        </div>
-      )}
 
       {withdrawOpen && (
         <ConfirmModal

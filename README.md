@@ -6,7 +6,6 @@
 
 ```text
 VITE_API_BASE_URL=http://localhost:8080
-VITE_USE_MOCK_DATA=false
 ```
 
 Backend를 `http://localhost:8080`에서 먼저 실행한 뒤 Frontend를 실행한다.

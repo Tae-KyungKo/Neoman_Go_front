@@ -42,10 +42,11 @@ export interface TeamMemberListResponse {
 }
 
 export interface TeamMemberResponse {
-  id: number;
   userId: number;
   nickname: string;
   role: 'OWNER' | 'MEMBER';
+  status: 'ACTIVE' | 'INACTIVE';
+  joinedAt: string;
 }
 
 export interface TeamDetailResponse {

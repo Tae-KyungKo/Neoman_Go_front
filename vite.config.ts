@@ -13,8 +13,8 @@ export default defineConfig(({ mode }) => {
 
   const env = loadEnv(mode, '.', '')
 
-  if (mode === 'production' && env.VITE_USE_MOCK_DATA !== 'true' && !env.VITE_API_BASE_URL?.trim()) {
-    throw new Error('VITE_API_BASE_URL must be configured for production builds when mock data is disabled')
+  if (mode === 'production' && !env.VITE_API_BASE_URL?.trim()) {
+    throw new Error('VITE_API_BASE_URL must be configured for production builds')
   }
 
   return {
