@@ -93,17 +93,19 @@ export function getTeam(teamId: number): Promise<TeamDetailResponse> {
 }
 
 export function getTeams(
-  category: string,
+  category: string | null,
   level: 'CASUAL' | 'COMPETITIVE' | null,
   page: number,
   size = 6,
 ): Promise<TeamPageResponse> {
   const query = new URLSearchParams({
-    category,
     page: String(page),
     size: String(size),
     sort: 'createdAt,desc',
   });
+  if (category) {
+    query.set('category', category);
+  }
   if (level) {
     query.set('level', level);
   }
