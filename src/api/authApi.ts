@@ -1,4 +1,4 @@
-import { requestApi } from './httpClient';
+import { requestApi, requestTokenReissue } from './httpClient';
 
 export interface LoginCredentials {
   loginId: string;
@@ -37,6 +37,10 @@ export function requestLogin(credentials: LoginCredentials): Promise<TokenRespon
     method: 'POST',
     body: JSON.stringify(credentials),
   });
+}
+
+export function requestReissue(refreshToken: string): Promise<TokenResponse> {
+  return requestTokenReissue(refreshToken);
 }
 
 export function requestSignup(payload: SignupPayload): Promise<SignupResponse> {

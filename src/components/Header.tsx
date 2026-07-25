@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useNotifications } from '../context/NotificationContext';
@@ -19,9 +20,23 @@ interface HeaderProps {
 }
 
 export function Header({ active }: HeaderProps) {
-  const { user } = useAuth();
-  const { unreadCount } = useNotifications();
+  const { user, logout } = useAuth();
+  const { unreadCount, streamStatus } = useNotifications();
   const navigate = useNavigate();
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
+
+  const handleLogout = async () => {
+    if (isLoggingOut) return;
+    setIsLoggingOut(true);
+    try {
+      await logout();
+      navigate('/');
+    } catch {
+      navigate('/');
+    } finally {
+      setIsLoggingOut(false);
+    }
+  };
 
   return (
     <header className="nm-header">
@@ -51,7 +66,13 @@ export function Header({ active }: HeaderProps) {
         <ThemeToggle />
         {user ? (
           <>
-            <button type="button" className="nm-header__bell" aria-label="알림함" onClick={() => navigate('/mypage/notifications')}>
+            <button
+              type="button"
+              className="nm-header__bell"
+              aria-label="알림함"
+              title={streamStatus === 'connected' ? '실시간 알림 연결됨' : '알림함'}
+              onClick={() => navigate('/mypage/notifications')}
+            >
               <Icon name="Bell" size={20} />
               {unreadCount > 0 && (
                 <span className="nm-header__bell-badge">
@@ -62,6 +83,14 @@ export function Header({ active }: HeaderProps) {
             <button type="button" onClick={() => navigate('/mypage/info')} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', display: 'flex' }} aria-label="마이페이지">
               <Avatar size={40} />
             </button>
+            <Button
+              label={isLoggingOut ? '로그아웃 중...' : '로그아웃'}
+              variant="outlined"
+              color="assistive"
+              size="md"
+              disabled={isLoggingOut}
+              onClick={() => void handleLogout()}
+            />
           </>
         ) : (
           <>

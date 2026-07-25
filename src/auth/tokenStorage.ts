@@ -9,6 +9,10 @@ export function getAccessToken(): string {
   return localStorage.getItem(ACCESS_TOKEN_STORAGE_KEY) ?? '';
 }
 
+export function getRefreshToken(): string {
+  return localStorage.getItem(REFRESH_TOKEN_STORAGE_KEY) ?? '';
+}
+
 export function saveTokens(tokens: TokenResponse): void {
   if (!tokens.accessToken || !tokens.refreshToken) {
     throw new Error('로그인 응답에 필수 token이 없습니다.');

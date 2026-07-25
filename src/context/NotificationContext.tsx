@@ -9,14 +9,24 @@ import {
 import {
   connectNotificationStream,
   getUnreadNotificationCount,
+  NotificationStreamError,
   type NotificationResponse,
 } from '../api/notificationApi';
+import { refreshAccessToken } from '../api/httpClient';
 import { getAccessToken } from '../auth/tokenStorage';
 import { useAuth } from './AuthContext';
+
+export type NotificationStreamStatus =
+  | 'disconnected'
+  | 'connecting'
+  | 'connected'
+  | 'reconnecting'
+  | 'fallback';
 
 interface NotificationContextValue {
   unreadCount: number;
   latestNotification: NotificationResponse | null;
+  streamStatus: NotificationStreamStatus;
   setUnreadCount: (count: number) => void;
   decrementUnreadCount: () => void;
   refreshUnreadCount: () => Promise<void>;
@@ -28,6 +38,7 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth();
   const [unreadCount, setUnreadCountState] = useState(0);
   const [latestNotification, setLatestNotification] = useState<NotificationResponse | null>(null);
+  const [streamStatus, setStreamStatus] = useState<NotificationStreamStatus>('disconnected');
 
   const setUnreadCount = useCallback((count: number) => {
     setUnreadCountState(Math.max(0, count));
@@ -51,6 +62,7 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
     if (!user) {
       setUnreadCountState(0);
       setLatestNotification(null);
+      setStreamStatus('disconnected');
       return;
     }
 
@@ -60,28 +72,54 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
   }, [refreshUnreadCount, user]);
 
   useEffect(() => {
-    const accessToken = getAccessToken();
-    if (!user || !accessToken) return;
+    if (!user || !getAccessToken()) return;
 
     const controller = new AbortController();
     let reconnectDelay = 1000;
+    let consecutiveFailures = 0;
 
     const run = async () => {
       while (!controller.signal.aborted) {
+        setStreamStatus(consecutiveFailures === 0 ? 'connecting' : 'reconnecting');
+
         try {
+          const accessToken = getAccessToken();
+          if (!accessToken) return;
+
           await connectNotificationStream(
             accessToken,
             controller.signal,
             (notification) => {
+              consecutiveFailures = 0;
+              reconnectDelay = 1000;
               setLatestNotification(notification);
               if (!notification.read) {
                 setUnreadCountState((count) => count + 1);
               }
             },
+            () => {
+              consecutiveFailures = 0;
+              reconnectDelay = 1000;
+              setStreamStatus('connected');
+            },
           );
-          reconnectDelay = 1000;
-        } catch {
+        } catch (error) {
           if (controller.signal.aborted) return;
+          if (error instanceof NotificationStreamError && error.status === 401) {
+            try {
+              await refreshAccessToken();
+              reconnectDelay = 1000;
+              continue;
+            } catch {
+              return;
+            }
+          }
+        }
+
+        consecutiveFailures += 1;
+        setStreamStatus(consecutiveFailures >= 3 ? 'fallback' : 'reconnecting');
+        if (consecutiveFailures >= 3) {
+          void refreshUnreadCount().catch(() => undefined);
         }
 
         await new Promise<void>((resolve) => {
@@ -100,14 +138,28 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
     };
 
     void run();
-    return () => controller.abort();
-  }, [user]);
+    return () => {
+      controller.abort();
+      setStreamStatus('disconnected');
+    };
+  }, [refreshUnreadCount, user]);
+
+  useEffect(() => {
+    if (!user || streamStatus !== 'fallback') return;
+
+    const intervalId = window.setInterval(() => {
+      void refreshUnreadCount().catch(() => undefined);
+    }, 30_000);
+
+    return () => window.clearInterval(intervalId);
+  }, [refreshUnreadCount, streamStatus, user]);
 
   return (
     <NotificationContext.Provider
       value={{
         unreadCount,
         latestNotification,
+        streamStatus,
         setUnreadCount,
         decrementUnreadCount,
         refreshUnreadCount,

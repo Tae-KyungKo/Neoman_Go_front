@@ -40,6 +40,16 @@ export interface UnreadNotificationCountResponse {
   unreadCount: number;
 }
 
+export class NotificationStreamError extends Error {
+  status: number | null;
+
+  constructor(message: string, status: number | null) {
+    super(message);
+    this.name = 'NotificationStreamError';
+    this.status = status;
+  }
+}
+
 export function getNotifications(
   page: number,
   accessToken: string,
@@ -85,6 +95,7 @@ export async function connectNotificationStream(
   accessToken: string,
   signal: AbortSignal,
   onNotification: (notification: NotificationResponse) => void,
+  onConnected?: () => void,
 ): Promise<void> {
   const response = await fetch(`${API_BASE_URL}/api/notifications/stream`, {
     headers: {
@@ -96,9 +107,13 @@ export async function connectNotificationStream(
   });
 
   if (!response.ok || !response.body) {
-    throw new Error(`SSE connection failed with status ${response.status}`);
+    throw new NotificationStreamError(
+      `SSE connection failed with status ${response.status}`,
+      response.status,
+    );
   }
 
+  onConnected?.();
   const reader = response.body.getReader();
   const decoder = new TextDecoder();
   let buffer = '';

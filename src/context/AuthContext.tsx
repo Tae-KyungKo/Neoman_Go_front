@@ -112,6 +112,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
   }, [normalizeUser]);
 
+  useEffect(() => {
+    const handleAuthExpired = () => {
+      setUser(null);
+      setAuthLoading(false);
+      setAuthReady(true);
+    };
+
+    window.addEventListener('neomango:auth-expired', handleAuthExpired);
+    return () => window.removeEventListener('neomango:auth-expired', handleAuthExpired);
+  }, []);
+
   return (
     <AuthContext.Provider
       value={{ user, login, authenticate, logout, authLoading, authReady }}
