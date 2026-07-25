@@ -17,3 +17,36 @@
   font: var(--text-body-1-medium);
   color: var(--label-normal);
 }
+
+.nm-mypage-links {
+  padding: 8px 24px;
+}
+.nm-mypage-link {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 18px 4px;
+  border: 0;
+  border-bottom: 1px solid var(--line-normal-normal);
+  background: none;
+  color: var(--label-normal);
+  text-align: left;
+  cursor: pointer;
+}
+.nm-mypage-link:last-child {
+  border-bottom: 0;
+}
+.nm-mypage-link > span {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.nm-mypage-link strong {
+  font: var(--text-body-1-semibold);
+}
+.nm-mypage-link small {
+  font: var(--text-caption-1-medium);
+  color: var(--label-alternative-2);
+}

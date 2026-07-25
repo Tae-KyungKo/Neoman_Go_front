@@ -8,8 +8,6 @@ import TeamFindPage from './pages/TeamFindPage';
 import TeamCreatePage from './pages/TeamCreatePage';
 import TeamDetailPage from './pages/TeamDetailPage';
 import TeamSettingsPage from './pages/TeamSettingsPage';
-import EditInfoPage from './pages/EditInfoPage';
-import ChangePasswordPage from './pages/ChangePasswordPage';
 import AdminNoticePage from './pages/AdminNoticePage';
 import ForbiddenPage from './pages/ForbiddenPage';
 import BoardListPage from './pages/BoardListPage';
@@ -47,8 +45,6 @@ function App() {
           <Route path="/mypage/info" element={<MyInfoPage />} />
           <Route path="/mypage/teams" element={<MyTeamPage />} />
           <Route path="/mypage/notifications" element={<NotificationsPage />} />
-          <Route path="/mypage/edit" element={<EditInfoPage />} />
-          <Route path="/mypage/change-password" element={<ChangePasswordPage />} />
           <Route path="/admin" element={<AdminConsolePage />} />
           <Route path="/admin/notices" element={<AdminNoticePage />} />
           <Route path="/teams/:teamId/manage" element={<TeamManagePage />} />

@@ -11,3 +11,17 @@ export interface MeResponse {
 export function getCurrentUser(accessToken: string): Promise<MeResponse> {
   return requestApi<MeResponse>('/api/users/me', {}, accessToken);
 }
+
+export function updateNickname(
+  nickname: string,
+  accessToken: string,
+): Promise<MeResponse> {
+  return requestApi<MeResponse>(
+    '/api/users/me/nickname',
+    {
+      method: 'PATCH',
+      body: JSON.stringify({ nickname }),
+    },
+    accessToken,
+  );
+}
