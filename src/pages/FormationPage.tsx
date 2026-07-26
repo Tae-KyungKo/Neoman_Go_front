@@ -4,12 +4,14 @@ import MainLayout from '../components/MainLayout';
 import Button from '../components/Button';
 import Icon from '../components/icons/Icon';
 import {
+  getFormation,
   saveFormation,
   type FormationPlayerPayload,
+  type FormationPlayerResponse,
   type FormationSport,
 } from '../api/formationApi';
 import { getTeam, type TeamDetailResponse } from '../api/teamApi';
-import { getApiErrorMessage } from '../api/httpClient';
+import { ApiError, getApiErrorMessage } from '../api/httpClient';
 import { getAccessToken } from '../auth/tokenStorage';
 import { useAuth } from '../context/AuthContext';
 import '../styles/teamShared.css';
@@ -116,6 +118,31 @@ const COURT_LINES: Record<string, () => ReactElement> = {
   basketball: BasketballLines,
 };
 
+function toPlayerPositions(players: FormationPlayerResponse[]): PlayerPosition[] {
+  return players
+    .slice()
+    .sort((left, right) => left.displayOrder - right.displayOrder)
+    .map((player, index) => ({
+      ...player,
+      key: String(player.id ?? `${player.displayOrder}-${index}`),
+    }));
+}
+
+function createDefaultPositions(
+  team: TeamDetailResponse,
+  config: SportConfig,
+): PlayerPosition[] {
+  return team.members
+    .filter((member) => member.status === 'ACTIVE')
+    .slice(0, config.positions.length)
+    .map((member, index) => ({
+      key: `${member.userId}-${index}`,
+      playerName: member.nickname,
+      displayOrder: index,
+      ...config.positions[index],
+    }));
+}
+
 export function FormationPage() {
   const { teamId = '', sport = '' } = useParams();
   const { user } = useAuth();
@@ -127,6 +154,8 @@ export function FormationPage() {
   const [version, setVersion] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+  const [isReloading, setIsReloading] = useState(false);
+  const [hasConflict, setHasConflict] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [savedMessage, setSavedMessage] = useState<string | null>(null);
   const courtRef = useRef<HTMLDivElement>(null);
@@ -139,21 +168,28 @@ export function FormationPage() {
     }
 
     let active = true;
+    const accessToken = getAccessToken();
     setIsLoading(true);
     setError(null);
 
-    getTeam(numericTeamId)
-      .then((response) => {
+    if (!accessToken) {
+      setError('로그인이 필요합니다.');
+      setIsLoading(false);
+      return;
+    }
+
+    Promise.all([
+      getTeam(numericTeamId),
+      getFormation(numericTeamId, config.apiSport, accessToken),
+    ])
+      .then(([teamResponse, formationResponse]) => {
         if (!active) return;
-        setTeam(response);
-        const members = response.members.filter((member) => member.status === 'ACTIVE');
+        setTeam(teamResponse);
+        setVersion(formationResponse.version);
         setPositions(
-          members.slice(0, config.positions.length).map((member, index) => ({
-            key: `${member.userId}-${index}`,
-            playerName: member.nickname,
-            displayOrder: index,
-            ...config.positions[index],
-          })),
+          formationResponse.version === 0 && formationResponse.players.length === 0
+            ? createDefaultPositions(teamResponse, config)
+            : toPlayerPositions(formationResponse.players),
         );
       })
       .catch((loadError) => {
@@ -211,6 +247,39 @@ export function FormationPage() {
     setSavedMessage(null);
   };
 
+  const handleRestoreDefault = () => {
+    if (!team) return;
+    setPositions(createDefaultPositions(team, config));
+    if (!hasConflict) {
+      setError(null);
+    }
+    setSavedMessage(null);
+  };
+
+  const handleReloadLatest = async () => {
+    const accessToken = getAccessToken();
+    if (!accessToken || isReloading) return;
+
+    setIsReloading(true);
+    setError(null);
+    setSavedMessage(null);
+    try {
+      const response = await getFormation(
+        numericTeamId,
+        config.apiSport,
+        accessToken,
+      );
+      setVersion(response.version);
+      setPositions(toPlayerPositions(response.players));
+      setHasConflict(false);
+      setSavedMessage('최신 포메이션을 불러왔습니다.');
+    } catch (reloadError) {
+      setError(getApiErrorMessage(reloadError, '최신 포메이션을 불러오지 못했습니다.'));
+    } finally {
+      setIsReloading(false);
+    }
+  };
+
   const handleSave = async () => {
     const accessToken = getAccessToken();
     if (!accessToken || isSaving) return;
@@ -243,14 +312,21 @@ export function FormationPage() {
       );
       setVersion(response.version);
       setPositions(
-        response.players.map((player, index) => ({
-          ...player,
-          key: String(player.id ?? index),
-        })),
+        toPlayerPositions(response.players),
       );
-      setSavedMessage(`${response.updatedBy.nickname}님이 포메이션을 저장했습니다.`);
+      setHasConflict(false);
+      setSavedMessage(
+        response.updatedBy
+          ? `${response.updatedBy.nickname}님이 포메이션을 저장했습니다.`
+          : '포메이션을 저장했습니다.',
+      );
     } catch (saveError) {
-      setError(getApiErrorMessage(saveError, '포메이션 저장에 실패했습니다.'));
+      if (saveError instanceof ApiError && saveError.code === 'F005') {
+        setHasConflict(true);
+        setError('다른 팀원이 포메이션을 먼저 수정했습니다. 최신 내용을 불러온 뒤 다시 편집해 주세요.');
+      } else {
+        setError(getApiErrorMessage(saveError, '포메이션 저장에 실패했습니다.'));
+      }
     } finally {
       setIsSaving(false);
     }
@@ -311,7 +387,30 @@ export function FormationPage() {
 
         {(error || savedMessage) && (
           <div className={`nm-fm-feedback ${error ? 'nm-fm-feedback--error' : ''}`} role="status">
-            {error ?? savedMessage}
+            <span>{error ?? savedMessage}</span>
+            {hasConflict && (
+              <Button
+                label={isReloading ? '불러오는 중...' : '최신 포메이션 불러오기'}
+                variant="outlined"
+                color="assistive"
+                size="sm"
+                disabled={isReloading}
+                onClick={handleReloadLatest}
+              />
+            )}
+          </div>
+        )}
+
+        {positions.length === 0 && (
+          <div className="nm-fm-empty">
+            <p>저장된 포메이션에 선수가 없습니다.</p>
+            <Button
+              label="기본 배치로 복원"
+              variant="outlined"
+              color="assistive"
+              size="sm"
+              onClick={handleRestoreDefault}
+            />
           </div>
         )}
 

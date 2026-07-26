@@ -92,7 +92,6 @@
 | `Team` | `name`, `description?`, `category`, `status`, `creator`, dates | name 50, description 500, category 50, `RECRUITING/CLOSED/DELETED` | 정원, level, location, 활동 시간 필드 없음 |
 | `TeamMember` | team, user, role, status, joinedAt | `(team_id,user_id)` unique, role `OWNER/MEMBER`, status `ACTIVE/INACTIVE` | 탈퇴와 강퇴는 상태만으로 구분 불가 |
 | `TeamApplication` | team, applicant, message?, status, active, canceledAt | message 500, `PENDING/APPROVED/REJECTED/CANCELED` | PENDING만 승인·거절·취소 가능 |
-| `UserCategoryMembership` | user, category, team | `(user_id,category)` unique | 한 사용자는 같은 category의 한 팀에만 소속 |
 | `Post` | category, title, content, author, status, dates | category 50, title 100, content 5000, `ACTIVE/DELETED` | 일반 게시판 type, 조회수, 좋아요 없음 |
 | `Comment` | post, author, content, status, dates | content 1000, `ACTIVE/DELETED` | 대댓글 구조 없음 |
 | `Notice` | author, title, content, status, dates | title 100, content 5000, `ACTIVE/DELETED` | 공개 작성자명은 실제 계정 대신 `관리자` |
@@ -135,20 +134,22 @@ target type:
 
 ### 5.2 팀·카테고리·가입 신청
 
-- 팀 생성자는 자동으로 OWNER, 활성 TeamMember, UserCategoryMembership가 된다.
-- 같은 사용자는 같은 category의 한 팀에만 소속될 수 있다.
+- 팀 생성자는 자동으로 OWNER 역할의 활성 `TeamMember`가 된다.
+- 같은 사용자는 같은 category 안에서 여러 팀을 생성하거나 여러 팀에 동시에 소속될 수 있다.
 - 팀 정원 제한은 없다.
 - `RECRUITING`: 목록 노출, 가입 신청 가능
 - `CLOSED`: 목록 노출, 가입 신청 불가
 - `DELETED`: 일반 조회 제외, 가입 신청 불가
 - 같은 팀에 PENDING 신청이 있으면 재신청할 수 없다.
 - 같은 category의 여러 팀에 PENDING 신청을 동시에 넣는 것은 허용된다.
-- 한 신청이 승인되면 같은 사용자의 같은 category 다른 PENDING 신청은 CANCELED된다.
+- 한 신청의 생성·승인·거절·취소는 대상 신청과 대상 팀에만 영향을 준다.
+- 한 신청이 승인되어도 같은 category의 다른 `PENDING` 신청은 `status=PENDING`, `active=true`, `canceledAt=null`을 유지한다.
 - 승인·거절은 해당 팀 OWNER만 할 수 있다.
 - 승인·거절은 application에 pessimistic write lock을 건다.
-- 일반 MEMBER 탈퇴와 강퇴는 TeamMember를 INACTIVE로 바꾸고 UserCategoryMembership를 삭제한다.
+- 일반 MEMBER 탈퇴와 강퇴는 대상 팀의 `TeamMember`만 `INACTIVE`로 바꾼다.
+- 탈퇴·강퇴는 같은 category를 포함한 다른 팀의 `TeamMember`와 신청에 영향을 주지 않는다.
 - 강퇴 후에는 같은 팀에 다시 신청할 수 있다.
-- OWNER가 혼자면 탈퇴 시 팀을 삭제하고 본인 멤버십을 비활성화하며 category 점유를 풀고 PENDING 신청을 거절한다.
+- OWNER가 혼자면 탈퇴 시 팀을 삭제하고 해당 팀의 본인 멤버십을 비활성화하며 해당 팀의 PENDING 신청을 거절한다.
 - 활성 팀원이 둘 이상이면 OWNER는 먼저 다른 활성 MEMBER에게 OWNER를 위임해야 탈퇴할 수 있다.
 
 ### 5.3 게시글·댓글·공지
@@ -299,7 +300,7 @@ Backend `category`는 활동 category 경로 값이다. 신규 디자인의 게�
 |---|---|---|
 | Global | `G001`~`G005`, `G999` | 입력 오류, 401 재발급, 403 금지, 404, 409, 서버 오류 |
 | User/Auth | `U001`~`U006` | 사용자 없음, email/loginId/nickname 중복, 자격 증명·token 오류 |
-| Team | `T001`~`T013` | 팀 없음, OWNER 필요, 이미 소속, category 중복 소속, 팀 마감, 탈퇴·강퇴·위임 오류 |
+| Team | `T001`~`T006`, `T008`~`T013` | 팀 없음, OWNER 필요, 같은 팀에 이미 소속, 팀 마감, 탈퇴·강퇴·위임 오류 |
 | Team application | `TA001`~`TA006` | 신청 없음, 중복 PENDING, 상태 전이 불가, 신청자/OWNER 권한 |
 | Post | `P001`~`P002` | 게시글 없음, 작성자 권한 |
 | Comment | `C001`~`C002` | 댓글 없음, 작성자 권한 |
@@ -386,7 +387,6 @@ Backend `category`는 활동 category 경로 값이다. 신규 디자인의 게�
 
 정책:
 
-- 팀 삭제 시 `UserCategoryMembership`을 삭제한다.
 - `TeamMember`는 INACTIVE가 되어야 한다.
 - 승인·탈퇴·강퇴·위임·팀 삭제의 관련 변경은 한 트랜잭션에 둔다.
 
@@ -398,7 +398,6 @@ Backend `category`는 활동 category 경로 값이다. 신규 디자인의 게�
 
 영향:
 
-- DELETE endpoint로 팀을 삭제한 사용자가 category 점유 row 때문에 같은 category의 새 팀 생성/가입 승인을 막힐 수 있다.
 - 삭제 팀의 active TeamMember와 PENDING application이 잔존할 수 있다.
 
 프론트 임시 대응으로 해결할 수 없으며, Backend에서 일반 삭제와 OWNER 단독 탈퇴 삭제의 정책을 통일해야 한다.
@@ -441,7 +440,7 @@ Backend `category`는 활동 category 경로 값이다. 신규 디자인의 게�
 
 정책:
 
-- User soft delete, 로그인 차단, 팀원 비활성화, category 점유 해제, OWNER 정책 연동.
+- User soft delete, 로그인 차단, 팀원 비활성화, OWNER 정책 연동.
 
 실제:
 
@@ -489,9 +488,9 @@ Backend `category`는 활동 category 경로 값이다. 신규 디자인의 게�
 영향:
 
 - `lol`, `LOL`, `LeagueOfLegends`가 UI·URL·DB에서 혼재할 수 있다.
-- same-category membership 정책이 문자열 표현에 종속된다.
+- category 필터와 화면 표시가 문자열 표현에 종속된다.
 
-category는 단순 표시값이 아니라 중복 소속 제약의 key이므로 Frontend만 임의로 정하면 안 된다.
+category는 팀 탐색 필터와 화면 표시 계약이므로 Frontend만 임의로 정하면 안 된다. 다만 category는 사용자 소속 수를 제한하는 key가 아니다.
 
 ## 10. 바로 연결 가능한 화면과 보류해야 할 화면
 
@@ -618,7 +617,7 @@ category는 단순 표시값이 아니라 중복 소속 제약의 key이므로 F
 - 신규 디자인의 Mock 데이터 필드는 곧 Backend 응답 필드라는 가정
 - `user/admin` 소문자 role을 서버 role로 그대로 사용하는 것
 - 버튼을 disable하면 중복 요청의 DB 정합성이 해결된다는 가정
-- Team DELETE가 현재 모든 멤버십과 category 점유를 정리한다는 가정
+- Team DELETE가 현재 모든 멤버십과 신청을 정리한다는 가정
 - CLOSED 팀을 다시 RECRUITING으로 바꿀 수 있다는 가정
 - TeamSummary를 반복 상세 호출로 보강하는 방식
 - SSE 한 연결만으로 알림 내역의 완전성이 보장된다는 가정

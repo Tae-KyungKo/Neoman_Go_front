@@ -19,17 +19,29 @@ export interface FormationResponse {
   teamName: string;
   sport: FormationSport;
   version: number;
-  updatedAt: string;
+  updatedAt: string | null;
   updatedBy: {
     userId: number;
     nickname: string;
-  };
+  } | null;
   players: FormationPlayerResponse[];
 }
 
 export interface FormationSavePayload {
   version: number;
   players: FormationPlayerPayload[];
+}
+
+export function getFormation(
+  teamId: number,
+  sport: FormationSport,
+  accessToken: string,
+): Promise<FormationResponse> {
+  return requestApi<FormationResponse>(
+    `/api/teams/${teamId}/formations/${sport}`,
+    {},
+    accessToken,
+  );
 }
 
 export function saveFormation(

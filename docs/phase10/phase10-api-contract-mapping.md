@@ -31,7 +31,7 @@
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | 팀 목록 | Category/TeamFind | GET | `/api/teams` | `category?`, `page,size,sort` | 없음 | `Page<TeamSummaryResponse>` | 공개 | 400 | `getTeams` | `TEAMS` 배열 | View Model 변환 필요 |
 | 팀 상세 | TeamDetail | GET | `/api/teams/{teamId}` | path | 없음 | `TeamDetailResponse` | 공개 | T001/404 | `getTeam` | `getTeamById` | View Model 변환 필요 |
-| 팀 생성 | TeamCreate | POST | `/api/teams` | `name,description,category` | `TeamCreateRequest` | `TeamResponse` | USER/ADMIN | T007/400/409 | `createTeam` | navigate만 수행 | 기존 함수 보정 |
+| 팀 생성 | TeamCreate | POST | `/api/teams` | `name,description,category` | `TeamCreateRequest` | `TeamResponse` | USER/ADMIN | 400/409 | `createTeam` | navigate만 수행 | 같은 카테고리 복수 팀 생성 허용 |
 | 팀 수정 | TeamSettings | - | 없음 | - | - | - | OWNER | - | 없음 | name input만 존재 | 운영 제외 |
 | 모집 마감 | TeamSettings | PATCH | `/api/teams/{teamId}/close` | path | 없음 | `Void` | OWNER | T001/T002/T006 | `closeTeam` | dialog 후 navigate | 그대로 재사용 |
 | 팀 삭제 | TeamSettings | DELETE | `/api/teams/{teamId}` | path | 없음 | `Void` | OWNER | T001/T002 | `deleteTeam` | dialog 후 navigate | 그대로 재사용 |
@@ -39,11 +39,11 @@
 | 팀 탈퇴 | TeamLeave | POST | `/api/teams/{teamId}/members/me/leave` | path | 없음 | `Void` | TEAM_MEMBER | T008/T010 | `leaveTeam` | navigate만 수행 | 그대로 재사용 |
 | 팀원 강퇴 | Team manage | POST | `/api/teams/{teamId}/members/{teamMemberId}/kick` | path ids | 없음 | `Void` | OWNER | T002/T008/T009/T012 | `kickMember` | 신규 화면 동작 없음 | 그대로 재사용 |
 | OWNER 위임 | TeamSettings | POST | `/api/teams/{teamId}/owner/delegate` | body `targetTeamMemberId` | `OwnerDelegationRequest` | `Void` | OWNER | T002/T011/T013 | `delegateOwner` | 선택 id 저장 없이 dialog | 기존 함수 보정 |
-| 가입 신청 | TeamDetail | POST | `/api/teams/{teamId}/applications` | body `message?` max 500 | `TeamApplicationCreateRequest` | `TeamApplicationResponse` | USER | TA002/T003/T006/T007 | `applyToTeam` | modal close만 수행 | 그대로 재사용 |
+| 가입 신청 | TeamDetail | POST | `/api/teams/{teamId}/applications` | body `message?` max 500 | `TeamApplicationCreateRequest` | `TeamApplicationResponse` | USER | TA002/T003/T006 | `applyToTeam` | modal close만 수행 | 같은 카테고리의 다른 팀 소속·신청은 제한 조건이 아님 |
 | 내 신청 목록 | MyTeam | GET | `/api/me/team-applications` | 없음 | 없음 | `List<TeamApplicationSummaryResponse>` | USER | G002 | `getMyApplications` | `MY_APPLICATIONS` | View Model 변환 필요 |
 | 신청 취소 | MyTeam | PATCH | `/api/team-applications/{id}/cancel` | path | 없음 | `TeamApplicationResponse` | 신청자 | TA004/TA005 | `cancelApplication` | 동작 없음 | 그대로 재사용 |
 | OWNER 신청 목록 | TeamManage | GET | `/api/teams/{teamId}/applications` | path | 없음 | `List<TeamApplicationOwnerResponse>` | OWNER | TA006 | `getTeamApplications` | `JOIN_REQUESTS` | View Model 변환 필요 |
-| 신청 승인 | TeamManage | POST | `/api/team-applications/{id}/approve` | path | 없음 | `TeamApplicationResponse` | OWNER | TA003/T002/T007 | `approveApplication` | 배열에서 제거 | 그대로 재사용 |
+| 신청 승인 | TeamManage | POST | `/api/team-applications/{id}/approve` | path | 없음 | `TeamApplicationResponse` | OWNER | TA003/T002 | `approveApplication` | 처리한 현재 팀 신청만 배열에서 제거 | 다른 팀 신청의 상태를 변경하지 않음 |
 | 신청 거절 | TeamManage | POST | `/api/team-applications/{id}/reject` | path | 없음 | `TeamApplicationResponse` | OWNER | TA003/T002 | `rejectApplication` | 배열에서 제거 | 그대로 재사용 |
 | 내 소속 팀 목록 | MyTeam | - | 없음 | - | - | - | USER | - | 없음 | `MY_TEAMS` | Backend 검토 필요 |
 | 포메이션 | Formation | - | 없음 | - | - | - | MEMBER/OWNER | - | 없음 | mock drag/input | 운영 제외 |

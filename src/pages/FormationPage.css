@@ -24,12 +24,34 @@
 }
 
 .nm-fm-feedback {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
   margin-bottom: 16px;
   padding: 12px 14px;
   border-radius: var(--radius-md);
   background: rgba(36, 171, 105, 0.1);
   color: var(--status-positive);
   font: var(--text-caption-1-medium);
+}
+
+.nm-fm-empty {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 16px;
+  padding: 16px;
+  border: 1px solid var(--line-normal-normal);
+  border-radius: var(--radius-md);
+  background: var(--background-normal-normal);
+}
+
+.nm-fm-empty p {
+  margin: 0;
+  color: var(--label-alternative-2);
+  font: var(--text-body-2-regular);
 }
 
 .nm-fm-feedback--error {
