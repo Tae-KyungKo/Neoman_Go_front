@@ -148,7 +148,7 @@ export function TeamLeavePage() {
             <div className="nm-settings-card__desc">
               {isLeader
                 ? '팀을 해체하면 되돌릴 수 없어요.'
-                : '팀을 탈퇴하면 팀 채널과 활동 기록에서 제외돼요. 다시 가입하려면 팀장의 승인이 필요해요.'}
+                : '정말 탈퇴하시겠습니까? 다시 가입하려면 팀장의 승인이 필요해요.'}
             </div>
             <Button
               label={isLeader ? '팀 해체하기' : '팀 탈퇴하기'}

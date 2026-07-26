@@ -80,8 +80,11 @@ export function SignupPage() {
   const loginIdHint =
     loginIdError ??
     loginIdAvailabilityMessage ??
-    (loginId ? '중복 확인이 필요해요' : undefined);
-  const nicknameHint = nicknameError ?? nicknameAvailabilityMessage ?? undefined;
+    (loginId ? '중복 확인이 필요해요' : '4~12자의 영문 대소문자와 숫자를 사용할 수 있어요.');
+  const nicknameHint =
+    nicknameError ??
+    nicknameAvailabilityMessage ??
+    (nickname ? '중복 확인이 필요해요' : '2~12자로 입력해 주세요.');
   const loginIdHintStatus =
     loginIdError || loginIdAvailability === 'unavailable' || loginIdAvailability === 'error'
       ? 'error'
@@ -153,7 +156,7 @@ export function SignupPage() {
               setLoginIdAvailabilityMessage(null);
               setServerFieldErrors((errors) => ({ ...errors, loginId: '' }));
             }}
-            hint={serverFieldErrors.loginId ?? loginIdHint}
+            hint={serverFieldErrors.loginId || loginIdHint}
             hintStatus={serverFieldErrors.loginId ? 'error' : loginIdHintStatus}
             action={
               <Button
@@ -174,7 +177,7 @@ export function SignupPage() {
               setPassword(e.target.value);
               setServerFieldErrors((errors) => ({ ...errors, password: '' }));
             }}
-            hint={serverFieldErrors.password ?? passwordError ?? '영문·숫자·특수문자 포함 8자 이상'}
+            hint={serverFieldErrors.password || passwordError || '영문·숫자·특수문자 포함 8자 이상'}
             hintStatus={serverFieldErrors.password || passwordError ? 'error' : 'default'}
           />
           <FormField
@@ -185,7 +188,7 @@ export function SignupPage() {
               setPasswordConfirm(e.target.value);
               setServerFieldErrors((errors) => ({ ...errors, passwordConfirm: '' }));
             }}
-            hint={serverFieldErrors.passwordConfirm ?? passwordConfirmError ?? (passwordConfirm ? '비밀번호가 일치해요' : undefined)}
+            hint={serverFieldErrors.passwordConfirm || passwordConfirmError || (passwordConfirm ? '비밀번호가 일치해요' : undefined)}
             hintStatus={serverFieldErrors.passwordConfirm || passwordConfirmError ? 'error' : passwordConfirm ? 'positive' : 'default'}
           />
           <FormField
@@ -195,7 +198,7 @@ export function SignupPage() {
               setEmail(e.target.value);
               setServerFieldErrors((errors) => ({ ...errors, email: '' }));
             }}
-            hint={serverFieldErrors.email ?? emailError ?? undefined}
+            hint={serverFieldErrors.email || emailError || undefined}
             hintStatus={serverFieldErrors.email || emailError ? 'error' : 'default'}
           />
           <FormField
@@ -208,7 +211,7 @@ export function SignupPage() {
               setNicknameAvailabilityMessage(null);
               setServerFieldErrors((errors) => ({ ...errors, nickname: '' }));
             }}
-            hint={serverFieldErrors.nickname ?? nicknameHint}
+            hint={serverFieldErrors.nickname || nicknameHint}
             hintStatus={serverFieldErrors.nickname ? 'error' : nicknameHintStatus}
             action={
               <Button

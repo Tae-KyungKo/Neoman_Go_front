@@ -10,6 +10,7 @@ import {
   deleteTeam,
   getTeam,
   getTeamMembers,
+  reopenTeam,
   type TeamDetailResponse,
   type TeamMemberListResponse,
 } from '../api/teamApi';
@@ -19,7 +20,7 @@ import { useAuth } from '../context/AuthContext';
 import { getCategoryByApiCode } from '../data/categories';
 import '../styles/teamShared.css';
 
-type Dialog = 'delegate' | 'close' | 'delete' | null;
+type Dialog = 'delegate' | 'close' | 'reopen' | 'delete' | null;
 
 export function TeamSettingsPage() {
   const { user } = useAuth();
@@ -133,9 +134,31 @@ export function TeamSettingsPage() {
     setSettingsError(null);
     try {
       await closeTeam(numericTeamId, accessToken);
-      navigate(`/teams/${team.id}`, { replace: true });
+      setTeam((currentTeam) =>
+        currentTeam ? { ...currentTeam, status: 'CLOSED' } : currentTeam,
+      );
+      setDialog(null);
     } catch (error) {
       handleApiError(error, '팀 모집을 마감하지 못했습니다.');
+    } finally {
+      setProcessingDialog(null);
+    }
+  };
+
+  const handleReopen = async () => {
+    const accessToken = getAccessToken();
+    if (!accessToken || processingDialog) return;
+
+    setProcessingDialog('reopen');
+    setSettingsError(null);
+    try {
+      await reopenTeam(numericTeamId, accessToken);
+      setTeam((currentTeam) =>
+        currentTeam ? { ...currentTeam, status: 'RECRUITING' } : currentTeam,
+      );
+      setDialog(null);
+    } catch (error) {
+      handleApiError(error, '팀 모집을 다시 진행하지 못했습니다.');
     } finally {
       setProcessingDialog(null);
     }
@@ -191,9 +214,20 @@ export function TeamSettingsPage() {
             </div>
 
             <div className="nm-settings-card">
-              <div className="nm-settings-card__title">모집 마감</div>
-              <div className="nm-settings-card__desc">마감 후에는 새로운 가입 신청을 받을 수 없어요. 팀은 계속 유지돼요.</div>
-              <Button label="모집 마감하기" variant="outlined" color="assistive" size="md" style={{ marginTop: 16 }} onClick={() => setDialog('close')} />
+              <div className="nm-settings-card__title">모집 상태</div>
+              <div className="nm-settings-card__desc">
+                {team.status === 'RECRUITING'
+                  ? '현재 모집 중이에요. 마감 후에는 새로운 가입 신청을 받을 수 없어요.'
+                  : '현재 모집이 마감됐어요. 모집을 다시 진행하면 새로운 가입 신청을 받을 수 있어요.'}
+              </div>
+              <Button
+                label={team.status === 'RECRUITING' ? '모집 마감하기' : '모집 진행하기'}
+                variant="outlined"
+                color="assistive"
+                size="md"
+                style={{ marginTop: 16 }}
+                onClick={() => setDialog(team.status === 'RECRUITING' ? 'close' : 'reopen')}
+              />
             </div>
 
             <div className="nm-settings-card nm-settings-card--danger">
@@ -250,6 +284,17 @@ export function TeamSettingsPage() {
           confirmDisabled={processingDialog !== null}
           onCancel={() => setDialog(null)}
           onConfirm={() => void handleClose()}
+        />
+      )}
+
+      {dialog === 'reopen' && (
+        <ConfirmModal
+          title="팀 모집을 다시 진행하시겠습니까?"
+          description="변경 후 새로운 가입 신청을 받을 수 있습니다."
+          confirmLabel={processingDialog === 'reopen' ? '처리 중...' : '모집 진행하기'}
+          confirmDisabled={processingDialog !== null}
+          onCancel={() => setDialog(null)}
+          onConfirm={() => void handleReopen()}
         />
       )}
 

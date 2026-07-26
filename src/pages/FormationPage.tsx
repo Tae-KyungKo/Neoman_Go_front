@@ -132,15 +132,32 @@ function createDefaultPositions(
   team: TeamDetailResponse,
   config: SportConfig,
 ): PlayerPosition[] {
-  return team.members
-    .filter((member) => member.status === 'ACTIVE')
-    .slice(0, config.positions.length)
-    .map((member, index) => ({
-      key: `${member.userId}-${index}`,
-      playerName: member.nickname,
+  const activeMembers = team.members.filter((member) => member.status === 'ACTIVE');
+  return config.positions.map((position, index) => {
+    const member = activeMembers[index];
+    return {
+      key: member ? `${member.userId}-${index}` : `empty-${index}`,
+      playerName: member?.nickname ?? `선수 ${index + 1}`,
       displayOrder: index,
-      ...config.positions[index],
-    }));
+      ...position,
+    };
+  });
+}
+
+function fillFormationSlots(
+  players: FormationPlayerResponse[],
+  config: SportConfig,
+): PlayerPosition[] {
+  const savedPlayers = toPlayerPositions(players);
+  return config.positions.map((defaultPosition, index) => {
+    const savedPlayer = savedPlayers[index];
+    return savedPlayer ?? {
+      key: `empty-${index}`,
+      playerName: `선수 ${index + 1}`,
+      displayOrder: index,
+      ...defaultPosition,
+    };
+  });
 }
 
 export function FormationPage() {
@@ -189,7 +206,7 @@ export function FormationPage() {
         setPositions(
           formationResponse.version === 0 && formationResponse.players.length === 0
             ? createDefaultPositions(teamResponse, config)
-            : toPlayerPositions(formationResponse.players),
+            : fillFormationSlots(formationResponse.players, config),
         );
       })
       .catch((loadError) => {
@@ -270,7 +287,7 @@ export function FormationPage() {
         accessToken,
       );
       setVersion(response.version);
-      setPositions(toPlayerPositions(response.players));
+      setPositions(fillFormationSlots(response.players, config));
       setHasConflict(false);
       setSavedMessage('최신 포메이션을 불러왔습니다.');
     } catch (reloadError) {
@@ -312,7 +329,7 @@ export function FormationPage() {
       );
       setVersion(response.version);
       setPositions(
-        toPlayerPositions(response.players),
+        fillFormationSlots(response.players, config),
       );
       setHasConflict(false);
       setSavedMessage(

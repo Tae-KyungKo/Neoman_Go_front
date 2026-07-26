@@ -300,6 +300,17 @@ export function closeTeam(
   );
 }
 
+export function reopenTeam(
+  teamId: number,
+  accessToken: string,
+): Promise<void> {
+  return requestApi<void>(
+    `/api/teams/${teamId}/reopen`,
+    { method: 'PATCH' },
+    accessToken,
+  );
+}
+
 export function deleteTeam(
   teamId: number,
   accessToken: string,

@@ -29,6 +29,28 @@
   color: var(--primary-normal-3);
 }
 
+.nm-team-card__badges {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.nm-team-card__status {
+  font: var(--text-caption-1-semibold);
+  padding: 4px 10px;
+  border-radius: var(--radius-pill);
+}
+
+.nm-team-card__status--recruiting {
+  color: var(--status-positive);
+  background: color-mix(in srgb, var(--status-positive) 12%, transparent);
+}
+
+.nm-team-card__status--closed {
+  color: var(--label-alternative-2);
+  background: var(--background-normal-alternative);
+}
+
 .nm-team-card__level {
   font: var(--text-caption-1-semibold);
   color: var(--label-alternative-2);

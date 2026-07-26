@@ -8,15 +8,21 @@ import { getCategoryById } from '../data/categories';
 import { getTeams, type TeamSummaryResponse } from '../api/teamApi';
 import { getApiErrorMessage } from '../api/httpClient';
 import type { TeamCardModel } from '../components/TeamCard';
+import lolImg from '../assets/categories/lol.jpeg';
+import valorantImg from '../assets/categories/valorant.jpeg';
+import pubgImg from '../assets/categories/pubg.jpeg';
+import fifaImg from '../assets/categories/fifa.jpeg';
+import soccerImg from '../assets/categories/soccer.jpg';
+import basketballImg from '../assets/categories/basketball.jpeg';
 import './CategoryPage.css';
 
-const GRADIENTS: Record<string, string> = {
-  lol: 'linear-gradient(135deg, #1f2a44, #3a5fcd)',
-  valorant: 'linear-gradient(135deg, #a3122b, #ff4655)',
-  pubg: 'linear-gradient(135deg, #4a3f2b, #b08d57)',
-  fifa: 'linear-gradient(135deg, #0f5132, #22b06f)',
-  soccer: 'linear-gradient(135deg, #0b6e4f, #38b06a)',
-  basketball: 'linear-gradient(135deg, #b85c1f, #e08a3c)',
+const CATEGORY_IMAGES: Record<string, string> = {
+  lol: lolImg,
+  valorant: valorantImg,
+  pubg: pubgImg,
+  fifa: fifaImg,
+  soccer: soccerImg,
+  basketball: basketballImg,
 };
 
 const PAGE_SIZE = 6;
@@ -96,12 +102,16 @@ export function CategoryPage() {
     level: team.level === 'CASUAL' ? '즐겜' : '빡겜',
     location: team.location,
     time: team.activityTime,
+    status: team.status,
     memberCount: team.memberCount,
   }));
 
   return (
     <MainLayout active="카테고리">
-      <div className="nm-cat-hero" style={{ background: GRADIENTS[category.id] }}>
+      <div
+        className="nm-cat-hero"
+        style={{ backgroundImage: `url(${CATEGORY_IMAGES[category.id]})` }}
+      >
         <div className="nm-cat-hero-overlay">
           <span className="nm-cat-hero__eyebrow">CATEGORY</span>
           <h1 className="nm-cat-hero__title">{category.en}</h1>

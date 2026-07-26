@@ -12,6 +12,7 @@ const PAGE_SIZE = 12;
 
 export function TeamFindPage() {
   const [categoryId, setCategoryId] = useState<string>('all');
+  const [filter, setFilter] = useState<'latest' | 'casual' | 'competitive'>('latest');
   const [teams, setTeams] = useState<TeamSummaryResponse[]>([]);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
@@ -25,7 +26,10 @@ export function TeamFindPage() {
     setIsLoading(true);
     setLoadError(null);
 
-    getTeams(category?.apiCode ?? null, null, page - 1, PAGE_SIZE)
+    const level =
+      filter === 'casual' ? 'CASUAL' : filter === 'competitive' ? 'COMPETITIVE' : null;
+
+    getTeams(category?.apiCode ?? null, level, page - 1, PAGE_SIZE)
       .then((response) => {
         if (!active) return;
         setTeams(response.content);
@@ -46,7 +50,7 @@ export function TeamFindPage() {
     return () => {
       active = false;
     };
-  }, [categoryId, page]);
+  }, [categoryId, filter, page]);
 
   const teamCards: TeamCardModel[] = teams.map((team) => ({
     id: team.id,
@@ -55,6 +59,7 @@ export function TeamFindPage() {
     level: team.level === 'CASUAL' ? '즐겜' : '빡겜',
     location: team.location,
     time: team.activityTime,
+    status: team.status,
     memberCount: team.memberCount,
   }));
 
@@ -71,15 +76,30 @@ export function TeamFindPage() {
         </div>
         <p className="nm-teamfind__subtitle">종목과 실력에 맞는 팀을 찾아 바로 신청해보세요.</p>
 
-        <div className="nm-teamfind__filters">
-          <Chip active={categoryId === 'all'} onClick={() => selectCategory('all')}>
-            전체
-          </Chip>
-          {CATEGORIES.map((c) => (
-            <Chip key={c.id} active={categoryId === c.id} onClick={() => selectCategory(c.id)}>
-              {c.ko}
+        <div className="nm-teamfind__filter-row">
+          <div className="nm-teamfind__filters">
+            <Chip active={categoryId === 'all'} onClick={() => selectCategory('all')}>
+              전체
             </Chip>
-          ))}
+            {CATEGORIES.map((c) => (
+              <Chip key={c.id} active={categoryId === c.id} onClick={() => selectCategory(c.id)}>
+                {c.ko}
+              </Chip>
+            ))}
+          </div>
+          <select
+            className="nm-teamfind__sort"
+            value={filter}
+            aria-label="팀 성향 필터"
+            onChange={(event) => {
+              setFilter(event.target.value as typeof filter);
+              setPage(1);
+            }}
+          >
+            <option value="latest">최신순</option>
+            <option value="casual">즐겜</option>
+            <option value="competitive">빡겜</option>
+          </select>
         </div>
 
         {isLoading ? (

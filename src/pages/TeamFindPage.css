@@ -30,6 +30,23 @@
   margin-bottom: 24px;
 }
 
+.nm-teamfind__filter-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.nm-teamfind__sort {
+  flex-shrink: 0;
+  border: 1px solid var(--line-normal-normal);
+  background: var(--background-normal-normal);
+  color: var(--label-normal);
+  font: var(--text-body-2-medium);
+  padding: 8px 14px;
+  border-radius: var(--radius-sm);
+}
+
 .nm-teamfind__grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);

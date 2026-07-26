@@ -5,10 +5,14 @@
   display: flex;
   align-items: flex-end;
   color: #fff;
+  background-position: center;
+  background-size: cover;
 }
 .nm-cat-hero-overlay {
   position: relative;
   padding: 36px 48px;
+  width: 100%;
+  background: linear-gradient(90deg, rgba(0, 0, 0, 0.72), rgba(0, 0, 0, 0.08));
 }
 .nm-cat-hero__eyebrow {
   font: var(--text-caption-1-semibold);

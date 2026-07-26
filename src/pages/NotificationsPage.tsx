@@ -91,7 +91,7 @@ export function NotificationsPage() {
     getNotifications(page - 1, accessToken)
       .then((notificationPage) => {
         if (!active) return;
-        setNotifications(notificationPage.content);
+        setNotifications(notificationPage.content.filter((notification) => !notification.read));
         setTotalPages(Math.max(1, notificationPage.totalPages));
       })
       .catch((error) => {
@@ -112,7 +112,7 @@ export function NotificationsPage() {
   }, [page]);
 
   useEffect(() => {
-    if (!latestNotification || page !== 1) return;
+    if (!latestNotification || latestNotification.read || page !== 1) return;
     setNotifications((list) => {
       if (list.some((notification) => notification.id === latestNotification.id)) {
         return list;
@@ -144,7 +144,7 @@ export function NotificationsPage() {
     setLoadError(null);
     try {
       await markAllNotificationsAsRead(accessToken);
-      setNotifications((list) => list.map((notification) => ({ ...notification, read: true })));
+      setNotifications([]);
       setUnreadCount(0);
     } catch (error) {
       setLoadError(getApiErrorMessage(error, '알림을 모두 읽음 처리하지 못했습니다.'));
@@ -159,9 +159,7 @@ export function NotificationsPage() {
     if (!notification.read && accessToken) {
       try {
         await markNotificationAsRead(notification.id, accessToken);
-        setNotifications((list) =>
-          list.map((item) => (item.id === notification.id ? { ...item, read: true } : item)),
-        );
+        setNotifications((list) => list.filter((item) => item.id !== notification.id));
         decrementUnreadCount();
       } catch {
         // 읽음 처리 실패가 알림 대상 페이지 이동을 막지는 않는다.

@@ -10,6 +10,7 @@ export interface TeamCardModel {
   level: string;
   location: string;
   time: string;
+  status: 'RECRUITING' | 'CLOSED';
   memberCount?: number;
   roster?: unknown[];
 }
@@ -22,7 +23,12 @@ export function TeamCard({ team }: { team: TeamCardModel }) {
     <div className="nm-team-card" onClick={() => navigate(`/teams/${team.id}`)}>
       <div className="nm-team-card__body">
         <div className="nm-team-card__top">
-          <span className="nm-team-card__tag">{category?.ko}</span>
+          <div className="nm-team-card__badges">
+            <span className="nm-team-card__tag">{category?.ko}</span>
+            <span className={`nm-team-card__status nm-team-card__status--${team.status.toLowerCase()}`}>
+              {team.status === 'RECRUITING' ? '모집 중' : '마감'}
+            </span>
+          </div>
           <span className="nm-team-card__level">{team.level}</span>
         </div>
         <div className="nm-team-card__name">{team.name}</div>
