@@ -20,8 +20,6 @@ import FormationPage from './pages/FormationPage';
 import AdminConsolePage from './pages/AdminConsolePage';
 import TeamManagePage from './pages/TeamManagePage';
 import TeamLeavePage from './pages/TeamLeavePage';
-import FindPasswordPage from './pages/FindPasswordPage';
-import EmailVerifyPage from './pages/EmailVerifyPage';
 import LoginPage from './pages/LoginPage';
 import SignupPage from './pages/SignupPage';
 import NoticeListPage from './pages/NoticeListPage';
@@ -49,8 +47,6 @@ function App() {
           <Route path="/admin/notices" element={<AdminNoticePage />} />
           <Route path="/teams/:teamId/manage" element={<TeamManagePage />} />
           <Route path="/teams/:teamId/leave" element={<TeamLeavePage />} />
-          <Route path="/find-password" element={<FindPasswordPage />} />
-          <Route path="/verify-email" element={<EmailVerifyPage />} />
           <Route path="/forbidden" element={<ForbiddenPage />} />
           <Route path="/board" element={<BoardListPage />} />
           <Route path="/board/new" element={<BoardWritePage />} />

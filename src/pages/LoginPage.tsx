@@ -99,11 +99,6 @@ export function LoginPage() {
             style={{ marginTop: 4 }}
           />
         </form>
-        <div style={{ textAlign: 'center', marginTop: 14 }}>
-          <Link to="/find-password" style={{ font: 'var(--text-caption-1-medium)', color: 'var(--label-alternative-2)' }}>
-            비밀번호를 잊으셨나요?
-          </Link>
-        </div>
         <div className="nm-form-card__footer">
           아직 계정이 없으신가요? <Link to="/signup">회원가입</Link>
         </div>
