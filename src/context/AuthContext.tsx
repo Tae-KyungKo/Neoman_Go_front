@@ -18,6 +18,7 @@ export interface AuthUser {
 interface AuthContextValue {
   user: AuthUser | null;
   login: (user: AuthUser) => void;
+  updateCurrentUser: (updates: Partial<AuthUser>) => void;
   authenticate: (credentials: LoginCredentials) => Promise<AuthUser>;
   logout: () => Promise<void>;
   authLoading: boolean;
@@ -32,6 +33,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [authReady, setAuthReady] = useState(() => !getAccessToken());
 
   const login = (nextUser: AuthUser) => setUser(nextUser);
+  const updateCurrentUser = (updates: Partial<AuthUser>) => {
+    setUser((currentUser) => currentUser ? { ...currentUser, ...updates } : null);
+  };
   const logout = async () => {
     const accessToken = getAccessToken();
 
@@ -125,7 +129,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   return (
     <AuthContext.Provider
-      value={{ user, login, authenticate, logout, authLoading, authReady }}
+      value={{ user, login, updateCurrentUser, authenticate, logout, authLoading, authReady }}
     >
       {authReady ? children : null}
     </AuthContext.Provider>

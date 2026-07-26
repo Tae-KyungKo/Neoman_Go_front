@@ -50,3 +50,9 @@
   font: var(--text-caption-1-medium);
   color: var(--label-alternative-2);
 }
+
+.nm-mypage-success {
+  margin-top: 12px;
+  color: var(--status-positive);
+  font: var(--text-caption-1-medium);
+}

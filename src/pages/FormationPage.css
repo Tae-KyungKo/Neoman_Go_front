@@ -23,6 +23,20 @@
   margin: 0;
 }
 
+.nm-fm-feedback {
+  margin-bottom: 16px;
+  padding: 12px 14px;
+  border-radius: var(--radius-md);
+  background: rgba(36, 171, 105, 0.1);
+  color: var(--status-positive);
+  font: var(--text-caption-1-medium);
+}
+
+.nm-fm-feedback--error {
+  background: rgba(255, 66, 79, 0.1);
+  color: var(--status-negative);
+}
+
 .nm-court-wrap {
   position: relative;
   border-radius: var(--radius-lg);
@@ -98,4 +112,37 @@
   justify-content: center;
   padding: 120px 40px;
   text-align: center;
+}
+
+.nm-access-guard h1 {
+  margin: 18px 0 0;
+  font: var(--text-title-2);
+  color: var(--label-normal);
+}
+
+.nm-access-guard p {
+  margin: 10px 0 28px;
+  color: var(--label-alternative-2);
+  font: var(--text-body-1-regular);
+}
+
+@media (max-width: 640px) {
+  .nm-fm-shell {
+    padding: 24px 12px 80px;
+  }
+
+  .nm-fm-header-row {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .nm-player-chip {
+    width: 48px;
+    height: 48px;
+  }
+
+  .nm-player-chip .nm-name-input {
+    top: 50px;
+    width: 72px;
+  }
 }
