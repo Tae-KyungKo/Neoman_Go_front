@@ -1,0 +1,90 @@
+.nm-team-card {
+  background: var(--background-normal-normal);
+  border: 1px solid var(--line-normal-normal);
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  cursor: pointer;
+  transition: box-shadow 0.2s ease;
+}
+.nm-team-card:hover {
+  box-shadow: 0 12px 28px rgba(23, 23, 23, 0.1);
+}
+
+.nm-team-card__body {
+  padding: 18px;
+}
+
+.nm-team-card__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.nm-team-card__tag {
+  font: var(--text-caption-1-semibold);
+  padding: 4px 10px;
+  border-radius: var(--radius-pill);
+  background: rgba(0, 102, 255, 0.1);
+  color: var(--primary-normal-3);
+}
+
+.nm-team-card__badges {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.nm-team-card__status {
+  font: var(--text-caption-1-semibold);
+  padding: 4px 10px;
+  border-radius: var(--radius-pill);
+}
+
+.nm-team-card__status--recruiting {
+  color: var(--status-positive);
+  background: color-mix(in srgb, var(--status-positive) 12%, transparent);
+}
+
+.nm-team-card__status--closed {
+  color: var(--label-alternative-2);
+  background: var(--background-normal-alternative);
+}
+
+.nm-team-card__level {
+  font: var(--text-caption-1-semibold);
+  color: var(--label-alternative-2);
+}
+
+.nm-team-card__name {
+  font: var(--text-body-1-semibold);
+  color: var(--label-normal);
+  margin-bottom: 6px;
+}
+
+.nm-team-card__meta {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font: var(--text-caption-1-medium);
+  color: var(--label-alternative-2);
+}
+.nm-team-card__meta span {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.nm-team-card__members-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid var(--line-normal-normal);
+}
+
+.nm-team-card__member-count {
+  font: var(--text-caption-1-semibold);
+  color: var(--label-normal);
+}

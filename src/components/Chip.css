@@ -1,0 +1,20 @@
+.nm-chip {
+  border: 1px solid var(--line-normal-normal);
+  background: var(--background-normal-normal);
+  color: var(--label-alternative-2);
+  font: var(--text-body-2-semibold);
+  padding: 9px 16px;
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+}
+
+.nm-chip--active {
+  background: var(--label-normal);
+  border-color: var(--label-normal);
+  color: var(--static-white-3);
+}
+
+.nm-chip--primary-active.nm-chip--active {
+  background: var(--primary-normal-3);
+  border-color: var(--primary-normal-3);
+}

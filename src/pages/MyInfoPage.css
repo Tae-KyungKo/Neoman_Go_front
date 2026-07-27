@@ -1,0 +1,58 @@
+.nm-info-row {
+  display: flex;
+  align-items: center;
+  padding: 16px 0;
+  border-bottom: 1px solid var(--line-normal-normal);
+}
+.nm-info-row:last-child {
+  border-bottom: none;
+}
+.nm-info-row__label {
+  width: 140px;
+  flex-shrink: 0;
+  font: var(--text-body-2-medium);
+  color: var(--label-alternative-2);
+}
+.nm-info-row__value {
+  font: var(--text-body-1-medium);
+  color: var(--label-normal);
+}
+
+.nm-mypage-links {
+  padding: 8px 24px;
+}
+.nm-mypage-link {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 18px 4px;
+  border: 0;
+  border-bottom: 1px solid var(--line-normal-normal);
+  background: none;
+  color: var(--label-normal);
+  text-align: left;
+  cursor: pointer;
+}
+.nm-mypage-link:last-child {
+  border-bottom: 0;
+}
+.nm-mypage-link > span {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.nm-mypage-link strong {
+  font: var(--text-body-1-semibold);
+}
+.nm-mypage-link small {
+  font: var(--text-caption-1-medium);
+  color: var(--label-alternative-2);
+}
+
+.nm-mypage-success {
+  margin-top: 12px;
+  color: var(--status-positive);
+  font: var(--text-caption-1-medium);
+}

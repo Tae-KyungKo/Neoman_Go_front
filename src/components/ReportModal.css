@@ -1,0 +1,31 @@
+.nm-radio-option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--line-normal-normal);
+  cursor: pointer;
+}
+.nm-radio-option:last-child {
+  border-bottom: none;
+}
+.nm-radio-dot {
+  width: 20px;
+  height: 20px;
+  border-radius: 100px;
+  border: 1.5px solid var(--line-normal-strong, var(--line-normal-normal));
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.nm-radio-dot--checked {
+  border-color: var(--primary-normal-3);
+}
+.nm-radio-dot--checked::after {
+  content: '';
+  width: 10px;
+  height: 10px;
+  border-radius: 100px;
+  background: var(--primary-normal-3);
+}

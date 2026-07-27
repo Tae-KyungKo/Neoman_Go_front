@@ -1,0 +1,109 @@
+.nm-board {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 64px 24px 100px;
+}
+
+.nm-board__header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+.nm-board__title {
+  font: var(--text-title-1);
+  color: var(--label-normal);
+  margin: 0;
+}
+.nm-board__subtitle {
+  font: var(--text-body-2-regular);
+  color: var(--label-alternative-2);
+  margin: 0 0 28px;
+}
+
+.nm-board__toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.nm-board__tabs {
+  display: flex;
+  gap: 8px;
+}
+
+.nm-board__search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid var(--line-normal-normal);
+  border-radius: var(--radius-pill);
+  padding: 0 16px;
+  height: 44px;
+  background: var(--background-normal-normal);
+  color: var(--label-alternative-3);
+  width: 260px;
+}
+.nm-board__search input {
+  border: none;
+  outline: none;
+  background: transparent;
+  font: var(--text-body-2-regular);
+  color: var(--label-normal);
+  width: 100%;
+}
+
+.nm-post-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.nm-post-row--pinned {
+  background: var(--background-normal-alternative);
+}
+
+.nm-post-main {
+  flex: 1;
+  min-width: 0;
+}
+.nm-post-title-row {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+.nm-post-title {
+  font: var(--text-body-1-medium);
+  color: var(--label-normal);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.nm-post-comment-count {
+  font: var(--text-caption-1-semibold);
+  color: var(--primary-normal-3);
+  flex-shrink: 0;
+}
+.nm-post-preview {
+  font: var(--text-caption-1-medium);
+  color: var(--label-alternative-2);
+  margin-top: 4px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.nm-post-meta {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-shrink: 0;
+  font: var(--text-caption-1-medium);
+  color: var(--label-alternative-3);
+}
+.nm-post-meta span {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}

@@ -1,0 +1,103 @@
+@import './tokens/fonts.css';
+@import './tokens/fig-tokens.css';
+@import './tokens/typography.css';
+@import './tokens/spacing.css';
+
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html, body, #root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-pretendard);
+  background: var(--background-normal-alternative);
+  color: var(--label-normal);
+}
+
+a {
+  color: var(--primary-normal-3);
+  text-decoration: none;
+}
+a:hover {
+  color: var(--primary-normal-2);
+}
+
+button {
+  font-family: inherit;
+}
+
+.nm-list-card {
+  background: var(--background-normal-normal);
+  border: 1px solid var(--line-normal-normal);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+.nm-list-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--line-normal-normal);
+  cursor: pointer;
+  gap: 16px;
+}
+.nm-list-row:last-child {
+  border-bottom: none;
+}
+.nm-list-row:hover {
+  background: var(--background-normal-alternative);
+}
+
+.nm-empty-state {
+  padding: 64px 20px;
+  text-align: center;
+  font: var(--text-body-1-regular);
+  color: var(--label-alternative-3);
+}
+
+.nm-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 16px;
+}
+.nm-field label {
+  font: var(--text-body-2-medium);
+  color: var(--label-normal);
+}
+.nm-field input,
+.nm-field select,
+.nm-field textarea {
+  border-radius: var(--radius-md);
+  border: 1px solid var(--line-normal-normal);
+  padding: 0 14px;
+  font: var(--text-body-1-regular);
+  color: var(--label-normal);
+  background: var(--background-normal-normal);
+  outline: none;
+  width: 100%;
+  font-family: inherit;
+}
+.nm-field input,
+.nm-field select {
+  height: 48px;
+}
+.nm-field textarea {
+  padding: 14px;
+  min-height: 140px;
+  resize: vertical;
+}
+.nm-field input:focus,
+.nm-field select:focus,
+.nm-field textarea:focus {
+  border-color: var(--primary-normal-3);
+}
+.nm-field input:disabled {
+  background: var(--background-normal-alternative);
+  color: var(--label-alternative-3);
+}

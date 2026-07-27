@@ -1,0 +1,60 @@
+.nm-teamfind {
+  max-width: 1160px;
+  margin: 0 auto;
+  padding: 64px 24px 100px;
+}
+
+.nm-teamfind__header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.nm-teamfind__title {
+  font: var(--text-title-1);
+  color: var(--label-normal);
+  margin: 0;
+}
+
+.nm-teamfind__subtitle {
+  font: var(--text-body-2-regular);
+  color: var(--label-alternative-2);
+  margin: 0 0 28px;
+}
+
+.nm-teamfind__filters {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 24px;
+}
+
+.nm-teamfind__filter-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.nm-teamfind__sort {
+  flex-shrink: 0;
+  border: 1px solid var(--line-normal-normal);
+  background: var(--background-normal-normal);
+  color: var(--label-normal);
+  font: var(--text-body-2-medium);
+  padding: 8px 14px;
+  border-radius: var(--radius-sm);
+}
+
+.nm-teamfind__grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}
+
+@media (max-width: 900px) {
+  .nm-teamfind__grid {
+    grid-template-columns: 1fr;
+  }
+}

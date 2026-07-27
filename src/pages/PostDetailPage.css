@@ -1,0 +1,100 @@
+.nm-post-detail {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 64px 24px 100px;
+}
+
+.nm-post-detail__breadcrumb {
+  font: var(--text-caption-1-medium);
+  color: var(--label-alternative-2);
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.nm-post-detail__breadcrumb a {
+  color: var(--label-alternative-2);
+}
+
+.nm-post-detail__title {
+  font: var(--text-title-1);
+  color: var(--label-normal);
+  margin: 12px 0 12px;
+}
+
+.nm-post-detail__author-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding-bottom: 24px;
+  border-bottom: 1px solid var(--line-normal-normal);
+}
+
+.nm-post-detail__author-name {
+  font: var(--text-body-2-semibold);
+  color: var(--label-normal);
+}
+.nm-post-detail__author-meta {
+  display: flex;
+  gap: 10px;
+  font: var(--text-caption-1-medium);
+  color: var(--label-alternative-3);
+}
+
+.nm-post-detail__body {
+  font: var(--text-body-1-regular);
+  color: var(--label-normal);
+  line-height: 1.8;
+  min-height: 160px;
+  padding: 28px 0;
+}
+
+.nm-post-detail__like-row {
+  display: flex;
+  justify-content: center;
+  padding-bottom: 28px;
+}
+
+.nm-post-detail__actions {
+  display: flex;
+  justify-content: space-between;
+  padding-top: 20px;
+  padding-bottom: 28px;
+  border-top: 1px solid var(--line-normal-normal);
+}
+
+.nm-comment-item {
+  display: flex;
+  gap: 12px;
+  padding: 20px 0;
+  border-bottom: 1px solid var(--line-normal-normal);
+}
+.nm-comment-item:last-child {
+  border-bottom: none;
+}
+.nm-comment-item__head {
+  display: flex;
+  gap: 8px;
+  align-items: baseline;
+}
+
+.nm-comment-input-bar {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  margin-top: 8px;
+}
+.nm-comment-input-bar input {
+  flex: 1;
+  height: 48px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--line-normal-normal);
+  padding: 0 20px;
+  font: var(--text-body-2-regular);
+  color: var(--label-normal);
+  background: var(--background-normal-normal);
+  outline: none;
+}
+.nm-comment-input-bar input:focus {
+  border-color: var(--primary-normal-3);
+}

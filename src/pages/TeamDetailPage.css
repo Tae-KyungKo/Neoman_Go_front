@@ -1,0 +1,56 @@
+.nm-team-detail {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 56px 24px 100px;
+  display: flex;
+  gap: 32px;
+}
+
+.nm-team-detail__main {
+  flex: 1;
+  min-width: 0;
+}
+
+.nm-team-detail__hero {
+  background: var(--background-normal-normal);
+  border: 1px solid var(--line-normal-normal);
+  border-radius: var(--radius-xl);
+  padding: 28px 32px;
+  margin-bottom: 24px;
+  box-shadow: var(--shadow-card);
+}
+
+.nm-team-detail__tags {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+  align-items: center;
+}
+
+.nm-team-detail__name {
+  font: var(--text-title-1);
+  color: var(--label-normal);
+  margin: 0 0 6px;
+}
+
+.nm-team-detail__owner-line {
+  font: var(--text-caption-1-medium);
+  color: var(--label-alternative-2);
+  margin-bottom: 16px;
+}
+
+.nm-team-detail__desc {
+  font: var(--text-body-1-regular);
+  color: var(--label-alternative-2);
+  line-height: 1.7;
+  margin: 0;
+}
+
+.nm-team-detail__sidebar {
+  width: 280px;
+  flex-shrink: 0;
+}
+.nm-team-detail__sidebar-inner {
+  position: sticky;
+  top: 24px;
+}
