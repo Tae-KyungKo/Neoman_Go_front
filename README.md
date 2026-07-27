@@ -1,52 +1,76 @@
-# React + TypeScript + Vite
+# NeomanGo Frontend
 
-## Local Backend 연결
+너만고 프로젝트의 React + TypeScript + Vite 프론트엔드입니다.
 
-개발 모드에서는 저장소의 `.env.development` 설정을 사용한다.
+## 실행 환경
 
-```text
+- Node.js 24 (`.nvmrc`)
+- npm 11 이상
+- 로컬 Backend: `http://localhost:8080`
+- 로컬 Frontend: `http://localhost:5173`
+
+## 로컬 실행
+
+저장소에는 로컬 실행 기본값이 설정된 `.env.development`가 포함되어 있습니다.
+
+```env
 VITE_API_BASE_URL=http://localhost:8080
 ```
 
-Backend를 `http://localhost:8080`에서 먼저 실행한 뒤 Frontend를 실행한다.
+Backend 서버를 먼저 8080 포트에서 실행한 다음 Frontend를 실행합니다.
 
 ```bash
 npm install
 npm run dev
 ```
 
-Frontend 개발 서버는 Backend CORS 기준과 일치하도록
-`http://localhost:5173`에서 실행되며, 해당 port를 사용할 수 없으면 다른 port로
-자동 변경하지 않고 즉시 실패한다. 개인별 override가 필요하면 Git에 포함되지 않는
-`.env.development.local`을 사용한다.
+Vite 개발 서버는 Backend CORS 설정과 일치하도록 `localhost:5173`을 사용합니다.
+해당 포트가 이미 사용 중이면 다른 포트로 자동 변경하지 않고 실행에 실패합니다.
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+개인별 API 주소가 필요하면 Git에 포함되지 않는 `.env.development.local`을 생성합니다.
 
-Currently, two official plugins are available:
-
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
-
-## React Compiler
-
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the Oxlint configuration
-
-If you are developing a production application, we recommend enabling type-aware lint rules by installing `oxlint-tsgolint` and editing `.oxlintrc.json`:
-
-```json
-{
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "oxc"],
-  "options": {
-    "typeAware": true
-  },
-  "rules": {
-    "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
-  }
-}
+```env
+VITE_API_BASE_URL=http://localhost:8081
 ```
 
-See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
+## 빌드 및 검증
+
+```bash
+npm run lint
+npm run build
+npm run preview
+```
+
+`npm run build`는 TypeScript 검사 후 Vite 운영 빌드를 생성합니다.
+
+## 운영 환경
+
+운영 빌드에는 `.env.production`이 반드시 필요합니다.
+
+```env
+VITE_API_BASE_URL=https://api.neomango.kr
+```
+
+로컬 검증이 필요하면 `.env.production.example`을 복사해 사용합니다.
+
+```powershell
+Copy-Item .env.production.example .env.production
+npm run build
+npm run preview
+```
+
+실제 `.env.production`은 Git에 커밋하지 않습니다. CI에서는 빌드 단계에서 운영 API
+주소를 주입합니다.
+
+`VITE_*` 환경변수는 브라우저 번들에 포함되는 공개 설정입니다. 비밀번호, JWT secret,
+AWS access key 등의 민감정보를 저장하면 안 됩니다.
+
+## 환경 파일
+
+| 파일 | 용도 | Git 관리 |
+|---|---|---|
+| `.env.example` | 공통 환경변수 예시 | 포함 |
+| `.env.development` | 기본 로컬 Backend 연결 | 포함 |
+| `.env.development.local` | 개발자별 로컬 override | 제외 |
+| `.env.production.example` | 운영 환경변수 예시 | 포함 |
+| `.env.production` | 실제 운영 빌드 설정 | 제외 |
