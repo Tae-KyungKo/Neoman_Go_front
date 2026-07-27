@@ -1,0 +1,29 @@
+.nm-team-create {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 64px 24px 120px;
+}
+
+.nm-team-create__title {
+  font: var(--text-title-1);
+  color: var(--label-normal);
+  margin: 0 0 8px;
+}
+
+.nm-team-create__desc {
+  font: var(--text-body-2-regular);
+  color: var(--label-alternative-2);
+  margin: 0 0 32px;
+}
+
+.nm-chip-select {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.nm-field-row-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}

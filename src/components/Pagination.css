@@ -1,0 +1,25 @@
+.nm-pagination {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 28px;
+}
+
+.nm-page-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--line-normal-normal);
+  background: var(--background-normal-normal);
+  color: var(--label-alternative-2);
+  font: var(--text-caption-1-medium);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.nm-page-btn--active {
+  background: var(--primary-normal-3);
+  border-color: var(--primary-normal-3);
+  color: var(--static-white-3);
+}

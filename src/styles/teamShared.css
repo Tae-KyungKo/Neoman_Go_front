@@ -1,0 +1,68 @@
+.nm-team-tag {
+  font: var(--text-caption-1-semibold);
+  padding: 4px 10px;
+  border-radius: var(--radius-pill);
+  background: rgba(0, 102, 255, 0.1);
+  color: var(--primary-normal-3);
+  width: fit-content;
+}
+
+.nm-info-card {
+  background: var(--background-normal-normal);
+  border: 1px solid var(--line-normal-normal);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+}
+
+.nm-info-card__row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font: var(--text-body-2-medium);
+  color: var(--label-normal);
+  padding: 12px 0;
+  border-bottom: 1px solid var(--line-normal-normal);
+}
+.nm-info-card__row:last-child {
+  border-bottom: none;
+}
+
+.nm-roster-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--line-normal-normal);
+}
+.nm-roster-row:last-child {
+  border-bottom: none;
+}
+.nm-roster-role {
+  margin-left: auto;
+  font: var(--text-caption-1-semibold);
+  color: var(--label-alternative-2);
+}
+.nm-roster-role--leader {
+  color: var(--primary-normal-3);
+}
+
+.nm-settings-card {
+  background: var(--background-normal-normal);
+  border: 1px solid var(--line-normal-normal);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  margin-bottom: 16px;
+}
+.nm-settings-card--danger {
+  border-color: rgba(255, 66, 79, 0.3);
+}
+.nm-settings-card__title {
+  font: var(--text-body-1-semibold);
+  color: var(--label-normal);
+}
+.nm-settings-card__desc {
+  font: var(--text-body-2-regular);
+  color: var(--label-alternative-2);
+  margin-top: 4px;
+  line-height: 1.6;
+}

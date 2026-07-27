@@ -1,0 +1,14 @@
+.nm-post-cat {
+  flex-shrink: 0;
+  font: var(--text-caption-1-semibold);
+  padding: 5px 11px;
+  border-radius: var(--radius-pill);
+  background: rgba(0, 102, 255, 0.1);
+  color: var(--primary-normal-3);
+  width: fit-content;
+  display: inline-block;
+}
+.nm-post-cat--recruit {
+  background: rgba(0, 177, 124, 0.12);
+  color: var(--status-positive);
+}

@@ -1,0 +1,26 @@
+.nm-auth-layout {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--background-normal-alternative);
+}
+
+.nm-auth-layout__topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 26px 48px;
+}
+
+.nm-auth-layout__logo {
+  font: 800 28px var(--font-wanted-sans);
+  color: var(--primary-normal-3);
+}
+
+.nm-auth-layout__content {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px 40px 100px;
+}

@@ -1,0 +1,9 @@
+@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css');
+@import url('https://cdn.jsdelivr.net/gh/wanteddev/wanted-sans@v1.2.1/packages/wanted-sans/fonts/webfonts/variable/split/WantedSansVariable.min.css');
+@import url('https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;500;600&display=swap');
+
+:root {
+  --font-pretendard: 'Pretendard', 'Pretendard JP', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-wanted-sans: 'Wanted Sans Variable', 'Wanted Sans', var(--font-pretendard);
+  --font-mono: 'SF Mono', ui-monospace, 'Roboto Mono', monospace;
+}
