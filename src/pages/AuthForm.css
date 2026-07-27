@@ -1,0 +1,25 @@
+.nm-form-card {
+  background: var(--background-normal-normal);
+  border: 1px solid var(--line-normal-normal);
+  border-radius: var(--radius-xl);
+  padding: 40px 36px;
+  box-shadow: var(--shadow-card);
+}
+
+.nm-form-card__title {
+  font: var(--text-title-2);
+  color: var(--label-normal);
+  margin: 0 0 28px;
+  text-align: center;
+}
+
+.nm-form-card__footer {
+  text-align: center;
+  margin-top: 22px;
+  font: var(--text-body-2-regular);
+  color: var(--label-alternative-2);
+}
+.nm-form-card__footer a {
+  color: var(--primary-normal-3);
+  font-weight: 600;
+}

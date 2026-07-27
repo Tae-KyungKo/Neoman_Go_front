@@ -1,0 +1,32 @@
+.nm-notfound {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 120px 40px;
+  text-align: center;
+}
+
+.nm-notfound__code {
+  font: 800 72px var(--font-wanted-sans);
+  color: var(--line-normal-strong, var(--line-normal-normal));
+}
+
+.nm-notfound__title {
+  font: var(--text-title-2);
+  color: var(--label-normal);
+  margin: 16px 0 0;
+}
+
+.nm-notfound__desc {
+  font: var(--text-body-1-regular);
+  color: var(--label-alternative-2);
+  margin-top: 10px;
+  max-width: 380px;
+}
+
+.nm-notfound__actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 32px;
+}

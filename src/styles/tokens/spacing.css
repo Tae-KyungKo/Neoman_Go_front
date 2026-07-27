@@ -1,0 +1,8 @@
+:root {
+  --space-4: 4px; --space-8: 8px; --space-12: 12px; --space-16: 16px; --space-20: 20px;
+  --space-24: 24px; --space-32: 32px; --space-48: 48px; --space-64: 64px;
+  --radius-sm: 8px; --radius-md: 12px; --radius-lg: 16px; --radius-xl: 20px; --radius-pill: 999px;
+  --shadow-card: 0 2px 8px rgba(23,23,23,0.07);
+  --shadow-popover: 0 4px 16px rgba(23,23,23,0.1), 0 1px 4px rgba(23,23,23,0.06);
+  --shadow-modal: 0 8px 32px rgba(0,0,0,0.12);
+}
