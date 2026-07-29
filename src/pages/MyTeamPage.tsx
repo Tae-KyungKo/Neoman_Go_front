@@ -8,6 +8,8 @@ import {
   cancelTeamApplication,
   getMyTeamApplications,
   getMyTeams,
+  markAllTeamApplicationsAsRead,
+  markTeamApplicationAsRead,
   type MyTeamSummaryResponse,
   type TeamApplicationSummaryResponse,
 } from '../api/teamApi';
@@ -54,6 +56,8 @@ export function MyTeamPage() {
   const [applications, setApplications] = useState<TeamApplicationSummaryResponse[]>([]);
   const [isLoadingApplications, setIsLoadingApplications] = useState(true);
   const [cancelingApplicationId, setCancelingApplicationId] = useState<number | null>(null);
+  const [readingApplicationId, setReadingApplicationId] = useState<number | null>(null);
+  const [isMarkingAllApplications, setIsMarkingAllApplications] = useState(false);
   const [applicationError, setApplicationError] = useState<string | null>(null);
 
   const loadApplications = useCallback(async () => {
@@ -127,6 +131,40 @@ export function MyTeamPage() {
     }
   };
 
+  const handleMarkAsRead = async (applicationId: number) => {
+    const accessToken = getAccessToken();
+    if (!accessToken || readingApplicationId !== null || isMarkingAllApplications) return;
+
+    setReadingApplicationId(applicationId);
+    setApplicationError(null);
+    try {
+      await markTeamApplicationAsRead(applicationId, accessToken);
+      setApplications((list) =>
+        list.filter((application) => application.applicationId !== applicationId),
+      );
+    } catch (error) {
+      setApplicationError(getApiErrorMessage(error, '신청 내역을 읽음 처리하지 못했습니다.'));
+    } finally {
+      setReadingApplicationId(null);
+    }
+  };
+
+  const handleMarkAllAsRead = async () => {
+    const accessToken = getAccessToken();
+    if (!accessToken || isMarkingAllApplications || applications.length === 0) return;
+
+    setIsMarkingAllApplications(true);
+    setApplicationError(null);
+    try {
+      await markAllTeamApplicationsAsRead(accessToken);
+      setApplications([]);
+    } catch (error) {
+      setApplicationError(getApiErrorMessage(error, '신청 내역을 전체 읽음 처리하지 못했습니다.'));
+    } finally {
+      setIsMarkingAllApplications(false);
+    }
+  };
+
   return (
     <MyPageLayout active="team">
       <h1 style={{ font: 'var(--text-title-1)', color: 'var(--label-normal)', margin: '0 0 24px' }}>My TEAM</h1>
@@ -137,6 +175,18 @@ export function MyTeamPage() {
         <Chip active={tab === 'apps'} onClick={() => setTab('apps')}>
           신청 현황 ({applications.length})
         </Chip>
+        {tab === 'apps' && applications.length > 0 && (
+          <div style={{ marginLeft: 'auto' }}>
+            <Button
+              label={isMarkingAllApplications ? '처리 중...' : '전체 읽음'}
+              variant="outlined"
+              color="assistive"
+              size="sm"
+              disabled={isMarkingAllApplications || readingApplicationId !== null}
+              onClick={() => void handleMarkAllAsRead()}
+            />
+          </div>
+        )}
       </div>
 
       {tab === 'apps' && applicationError && (
@@ -192,6 +242,18 @@ export function MyTeamPage() {
                     onClick={() => void handleCancel(application.applicationId)}
                   />
                 )}
+                <Button
+                  label={readingApplicationId === application.applicationId ? '처리 중...' : '읽음'}
+                  variant="outlined"
+                  color="assistive"
+                  size="sm"
+                  disabled={
+                    readingApplicationId !== null ||
+                    isMarkingAllApplications ||
+                    cancelingApplicationId === application.applicationId
+                  }
+                  onClick={() => void handleMarkAsRead(application.applicationId)}
+                />
               </div>
             );
           })}
@@ -199,7 +261,7 @@ export function MyTeamPage() {
         {tab === 'teams' && isLoadingTeams && <div className="nm-empty-state">소속 팀을 불러오는 중이에요.</div>}
         {tab === 'teams' && !isLoadingTeams && !teamError && teams.length === 0 && <div className="nm-empty-state">아직 소속된 팀이 없어요.</div>}
         {tab === 'apps' && isLoadingApplications && <div className="nm-empty-state">신청 현황을 불러오는 중이에요.</div>}
-        {tab === 'apps' && !isLoadingApplications && applications.length === 0 && <div className="nm-empty-state">아직 내역이 없어요.</div>}
+        {tab === 'apps' && !isLoadingApplications && applications.length === 0 && <div className="nm-empty-state">확인할 신청 내역이 없어요.</div>}
       </div>
     </MyPageLayout>
   );

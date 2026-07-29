@@ -184,10 +184,31 @@ export function createTeamApplication(
 
 export function getMyTeamApplications(
   accessToken: string,
+  includeRead = false,
 ): Promise<TeamApplicationSummaryResponse[]> {
+  const query = includeRead ? '?includeRead=true' : '';
   return requestApi<TeamApplicationSummaryResponse[]>(
-    '/api/me/team-applications',
+    `/api/me/team-applications${query}`,
     {},
+    accessToken,
+  );
+}
+
+export function markTeamApplicationAsRead(
+  applicationId: number,
+  accessToken: string,
+): Promise<void> {
+  return requestApi<void>(
+    `/api/me/team-applications/${applicationId}/read`,
+    { method: 'PATCH' },
+    accessToken,
+  );
+}
+
+export function markAllTeamApplicationsAsRead(accessToken: string): Promise<void> {
+  return requestApi<void>(
+    '/api/me/team-applications/read-all',
+    { method: 'PATCH' },
     accessToken,
   );
 }

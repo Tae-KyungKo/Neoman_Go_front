@@ -86,7 +86,7 @@ export function TeamDetailPage() {
     let active = true;
     setIsApplicationStatusLoading(true);
 
-    getMyTeamApplications(accessToken)
+    getMyTeamApplications(accessToken, true)
       .then((applications) => {
         if (!active) return;
         setHasPendingApplication(
