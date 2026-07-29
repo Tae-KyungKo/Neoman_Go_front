@@ -13,7 +13,6 @@ import {
   type NotificationResponse,
 } from '../api/notificationApi';
 import { refreshAccessToken } from '../api/httpClient';
-import { getAccessToken } from '../auth/tokenStorage';
 import { useAuth } from './AuthContext';
 
 export type NotificationStreamStatus =
@@ -35,7 +34,7 @@ interface NotificationContextValue {
 const NotificationContext = createContext<NotificationContextValue | null>(null);
 
 export function NotificationProvider({ children }: { children: ReactNode }) {
-  const { user } = useAuth();
+  const { status } = useAuth();
   const [unreadCount, setUnreadCountState] = useState(0);
   const [latestNotification, setLatestNotification] = useState<NotificationResponse | null>(null);
   const [streamStatus, setStreamStatus] = useState<NotificationStreamStatus>('disconnected');
@@ -49,17 +48,16 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const refreshUnreadCount = useCallback(async () => {
-    const accessToken = getAccessToken();
-    if (!accessToken) {
+    if (status !== 'authenticated') {
       setUnreadCountState(0);
       return;
     }
-    const response = await getUnreadNotificationCount(accessToken);
+    const response = await getUnreadNotificationCount();
     setUnreadCountState(response.unreadCount);
-  }, []);
+  }, [status]);
 
   useEffect(() => {
-    if (!user) {
+    if (status !== 'authenticated') {
       setUnreadCountState(0);
       setLatestNotification(null);
       setStreamStatus('disconnected');
@@ -69,10 +67,10 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
     void refreshUnreadCount().catch(() => {
       // The page-level REST error state remains the user-facing fallback.
     });
-  }, [refreshUnreadCount, user]);
+  }, [refreshUnreadCount, status]);
 
   useEffect(() => {
-    if (!user || !getAccessToken()) return;
+    if (status !== 'authenticated') return;
 
     const controller = new AbortController();
     let reconnectDelay = 1000;
@@ -83,11 +81,7 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
         setStreamStatus(consecutiveFailures === 0 ? 'connecting' : 'reconnecting');
 
         try {
-          const accessToken = getAccessToken();
-          if (!accessToken) return;
-
           await connectNotificationStream(
-            accessToken,
             controller.signal,
             (notification) => {
               consecutiveFailures = 0;
@@ -142,17 +136,17 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
       controller.abort();
       setStreamStatus('disconnected');
     };
-  }, [refreshUnreadCount, user]);
+  }, [refreshUnreadCount, status]);
 
   useEffect(() => {
-    if (!user || streamStatus !== 'fallback') return;
+    if (status !== 'authenticated' || streamStatus !== 'fallback') return;
 
     const intervalId = window.setInterval(() => {
       void refreshUnreadCount().catch(() => undefined);
     }, 30_000);
 
     return () => window.clearInterval(intervalId);
-  }, [refreshUnreadCount, streamStatus, user]);
+  }, [refreshUnreadCount, status, streamStatus]);
 
   return (
     <NotificationContext.Provider
