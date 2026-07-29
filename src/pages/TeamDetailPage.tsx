@@ -8,6 +8,7 @@ import Icon from '../components/icons/Icon';
 import TextareaField from '../components/TextareaField';
 import {
   createTeamApplication,
+  getMyTeamApplications,
   getTeam,
   type TeamDetailResponse,
 } from '../api/teamApi';
@@ -31,6 +32,8 @@ export function TeamDetailPage() {
   const [applyMessage, setApplyMessage] = useState('');
   const [applyError, setApplyError] = useState<string | null>(null);
   const [isApplying, setIsApplying] = useState(false);
+  const [hasPendingApplication, setHasPendingApplication] = useState(false);
+  const [isApplicationStatusLoading, setIsApplicationStatusLoading] = useState(false);
 
   useEffect(() => {
     if (!Number.isInteger(numericTeamId) || numericTeamId <= 0) {
@@ -66,6 +69,49 @@ export function TeamDetailPage() {
     };
   }, [numericTeamId]);
 
+  useEffect(() => {
+    if (!user || !Number.isInteger(numericTeamId) || numericTeamId <= 0) {
+      setHasPendingApplication(false);
+      setIsApplicationStatusLoading(false);
+      return;
+    }
+
+    const accessToken = getAccessToken();
+    if (!accessToken) {
+      setHasPendingApplication(false);
+      setIsApplicationStatusLoading(false);
+      return;
+    }
+
+    let active = true;
+    setIsApplicationStatusLoading(true);
+
+    getMyTeamApplications(accessToken)
+      .then((applications) => {
+        if (!active) return;
+        setHasPendingApplication(
+          applications.some(
+            (application) =>
+              application.teamId === numericTeamId && application.status === 'PENDING',
+          ),
+        );
+      })
+      .catch(() => {
+        if (active) {
+          setHasPendingApplication(false);
+        }
+      })
+      .finally(() => {
+        if (active) {
+          setIsApplicationStatusLoading(false);
+        }
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [numericTeamId, user]);
+
   const currentMember = team?.members.find(
     (member) => member.status === 'ACTIVE' && member.userId === user?.id,
   );
@@ -96,14 +142,21 @@ export function TeamDetailPage() {
     setIsApplying(true);
 
     try {
-      await createTeamApplication(
+      const application = await createTeamApplication(
         team.id,
         { message: applyMessage.trim() || null },
         accessToken,
       );
+      setHasPendingApplication(application.status === 'PENDING');
       setApplyMessage('');
       setApplyOpen(false);
     } catch (error) {
+      if (error instanceof ApiError && error.code === 'TA002') {
+        setHasPendingApplication(true);
+        setApplyMessage('');
+        setApplyOpen(false);
+        return;
+      }
       setApplyError(getApiErrorMessage(error, '가입 신청에 실패했습니다.'));
     } finally {
       setIsApplying(false);
@@ -238,10 +291,16 @@ export function TeamDetailPage() {
             {role === 'guest' && (
               <Button label="참가 신청" variant="solid" color="primary" size="lg" fullWidth onClick={() => setApplyOpen(true)} />
             )}
-            {role === 'user' && team.status === 'RECRUITING' && (
+            {role === 'user' && isApplicationStatusLoading && (
+              <Button label="신청 상태 확인 중..." variant="outlined" color="assistive" size="lg" fullWidth disabled />
+            )}
+            {role === 'user' && !isApplicationStatusLoading && hasPendingApplication && (
+              <Button label="신청 접수 됨" variant="outlined" color="assistive" size="lg" fullWidth disabled />
+            )}
+            {role === 'user' && !isApplicationStatusLoading && !hasPendingApplication && team.status === 'RECRUITING' && (
               <Button label="참가 신청" variant="solid" color="primary" size="lg" fullWidth onClick={() => setApplyOpen(true)} />
             )}
-            {role === 'user' && team.status === 'CLOSED' && (
+            {role === 'user' && !isApplicationStatusLoading && !hasPendingApplication && team.status === 'CLOSED' && (
               <Button label="모집 마감됨" variant="outlined" color="assistive" size="lg" fullWidth disabled />
             )}
             {role === 'member' && (
