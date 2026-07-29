@@ -10,6 +10,7 @@ export interface AuthSessionSnapshot {
   refreshToken: string;
   tokenType: string;
   accessTokenExpiresAt: number | null;
+  csrfToken: string;
 }
 
 type AuthSessionListener = (snapshot: AuthSessionSnapshot) => void;
@@ -19,6 +20,7 @@ const EMPTY_SESSION: AuthSessionSnapshot = {
   refreshToken: '',
   tokenType: 'Bearer',
   accessTokenExpiresAt: null,
+  csrfToken: '',
 };
 
 let currentSession: AuthSessionSnapshot = { ...EMPTY_SESSION };
@@ -41,12 +43,27 @@ export function setAuthSession(tokens: AuthSessionTokens): void {
     refreshToken: tokens.refreshToken ?? '',
     tokenType: tokens.tokenType || 'Bearer',
     accessTokenExpiresAt: Date.now() + tokens.accessTokenExpiresIn * 1000,
+    csrfToken: currentSession.csrfToken,
   };
   notify();
 }
 
 export function clearAuthSession(): void {
-  currentSession = { ...EMPTY_SESSION };
+  currentSession = {
+    ...EMPTY_SESSION,
+    csrfToken: currentSession.csrfToken,
+  };
+  notify();
+}
+
+export function setCsrfToken(csrfToken: string): void {
+  if (!csrfToken) {
+    throw new Error('CSRF Token이 없습니다.');
+  }
+  currentSession = {
+    ...currentSession,
+    csrfToken,
+  };
   notify();
 }
 

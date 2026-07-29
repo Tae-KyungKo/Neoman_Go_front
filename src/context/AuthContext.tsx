@@ -1,9 +1,22 @@
 import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from 'react';
-import { requestLogin, requestLogout, type LoginCredentials } from '../api/authApi';
+import {
+  requestCsrfToken,
+  requestWebLogin,
+  requestWebLogout,
+  requestWebRefresh,
+  type LoginCredentials,
+  type WebTokenResponse,
+} from '../api/authApi';
 import { getCurrentUser, type MeResponse } from '../api/userApi';
-import { clearTokens, getAccessToken, saveTokens } from '../auth/tokenStorage';
+import {
+  getAuthSession,
+  setAuthSession,
+  setCsrfToken,
+} from '../auth/authSession';
+import { clearTokens } from '../auth/tokenStorage';
 
 export type UserRole = 'user' | 'admin';
+export type AuthStatus = 'checking' | 'authenticated' | 'unauthenticated';
 
 export interface AuthUser {
   id?: number;
@@ -17,6 +30,7 @@ export interface AuthUser {
 
 interface AuthContextValue {
   user: AuthUser | null;
+  status: AuthStatus;
   login: (user: AuthUser) => void;
   updateCurrentUser: (updates: Partial<AuthUser>) => void;
   authenticate: (credentials: LoginCredentials) => Promise<AuthUser>;
@@ -25,29 +39,38 @@ interface AuthContextValue {
   authReady: boolean;
 }
 
+interface RestoredSession {
+  tokens: WebTokenResponse;
+  csrfToken: string;
+  me: MeResponse;
+}
+
 const AuthContext = createContext<AuthContextValue | null>(null);
+let initialSessionPromise: Promise<RestoredSession> | null = null;
+
+function restoreWebSession(): Promise<RestoredSession> {
+  if (!initialSessionPromise) {
+    initialSessionPromise = requestCsrfToken().then(async (csrf) => {
+      const tokens = await requestWebRefresh(csrf.token);
+      const me = await getCurrentUser(tokens.accessToken);
+      return { tokens, csrfToken: csrf.token, me };
+    });
+  }
+  return initialSessionPromise;
+}
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
-  const [authLoading, setAuthLoading] = useState(false);
-  const [authReady, setAuthReady] = useState(() => !getAccessToken());
+  const [status, setStatus] = useState<AuthStatus>('checking');
+  const [operationLoading, setOperationLoading] = useState(false);
 
-  const login = (nextUser: AuthUser) => setUser(nextUser);
+  const login = (nextUser: AuthUser) => {
+    setUser(nextUser);
+    setStatus('authenticated');
+  };
+
   const updateCurrentUser = (updates: Partial<AuthUser>) => {
     setUser((currentUser) => currentUser ? { ...currentUser, ...updates } : null);
-  };
-  const logout = async () => {
-    const accessToken = getAccessToken();
-
-    try {
-      if (accessToken) {
-        await requestLogout(accessToken);
-      }
-    } finally {
-      clearTokens();
-      setUser(null);
-      setAuthReady(true);
-    }
   };
 
   const normalizeUser = useCallback((me: MeResponse, loginId?: string): AuthUser => ({
@@ -59,56 +82,69 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     status: me.status,
   }), []);
 
+  const ensureCsrfToken = useCallback(async (): Promise<string> => {
+    const currentCsrfToken = getAuthSession().csrfToken;
+    if (currentCsrfToken) {
+      return currentCsrfToken;
+    }
+
+    const csrf = await requestCsrfToken();
+    setCsrfToken(csrf.token);
+    return csrf.token;
+  }, []);
+
+  const logout = useCallback(async () => {
+    setOperationLoading(true);
+    try {
+      const csrfToken = await ensureCsrfToken();
+      await requestWebLogout(csrfToken);
+    } finally {
+      clearTokens();
+      setUser(null);
+      setStatus('unauthenticated');
+      setOperationLoading(false);
+    }
+  }, [ensureCsrfToken]);
+
   const authenticate = useCallback(async (credentials: LoginCredentials): Promise<AuthUser> => {
-    setAuthLoading(true);
+    setOperationLoading(true);
 
     try {
-      const tokens = await requestLogin(credentials);
-      saveTokens(tokens);
+      const csrfToken = await ensureCsrfToken();
+      const tokens = await requestWebLogin(credentials, csrfToken);
+      setAuthSession(tokens);
 
       const me = await getCurrentUser(tokens.accessToken);
       const authenticatedUser = normalizeUser(me, credentials.loginId);
       setUser(authenticatedUser);
-      setAuthReady(true);
-
+      setStatus('authenticated');
       return authenticatedUser;
     } catch (error) {
       clearTokens();
       setUser(null);
-      setAuthReady(true);
+      setStatus('unauthenticated');
       throw error;
     } finally {
-      setAuthLoading(false);
+      setOperationLoading(false);
     }
-  }, [normalizeUser]);
+  }, [ensureCsrfToken, normalizeUser]);
 
   useEffect(() => {
-    const accessToken = getAccessToken();
-
-    if (!accessToken) {
-      return;
-    }
-
     let active = true;
-    setAuthLoading(true);
 
-    getCurrentUser(accessToken)
-      .then((me) => {
-        if (active) {
-          setUser(normalizeUser(me));
-        }
+    restoreWebSession()
+      .then(({ tokens, csrfToken, me }) => {
+        if (!active) return;
+        setCsrfToken(csrfToken);
+        setAuthSession(tokens);
+        setUser(normalizeUser(me));
+        setStatus('authenticated');
       })
       .catch(() => {
-        if (active) {
-          clearTokens();
-          setUser(null);
-        }
-      })
-      .finally(() => {
-        if (active) {
-          setAuthLoading(false);
-          setAuthReady(true);
-        }
+        if (!active) return;
+        clearTokens();
+        setUser(null);
+        setStatus('unauthenticated');
       });
 
     return () => {
@@ -118,18 +154,31 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const handleAuthExpired = () => {
+      clearTokens();
       setUser(null);
-      setAuthLoading(false);
-      setAuthReady(true);
+      setOperationLoading(false);
+      setStatus('unauthenticated');
     };
 
     window.addEventListener('neomango:auth-expired', handleAuthExpired);
     return () => window.removeEventListener('neomango:auth-expired', handleAuthExpired);
   }, []);
 
+  const authReady = status !== 'checking';
+  const authLoading = status === 'checking' || operationLoading;
+
   return (
     <AuthContext.Provider
-      value={{ user, login, updateCurrentUser, authenticate, logout, authLoading, authReady }}
+      value={{
+        user,
+        status,
+        login,
+        updateCurrentUser,
+        authenticate,
+        logout,
+        authLoading,
+        authReady,
+      }}
     >
       {authReady ? children : null}
     </AuthContext.Provider>
