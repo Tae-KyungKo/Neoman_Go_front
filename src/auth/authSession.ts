@@ -1,0 +1,68 @@
+export interface AuthSessionTokens {
+  accessToken: string;
+  refreshToken?: string;
+  tokenType?: string;
+  accessTokenExpiresIn: number;
+}
+
+export interface AuthSessionSnapshot {
+  accessToken: string;
+  refreshToken: string;
+  tokenType: string;
+  accessTokenExpiresAt: number | null;
+}
+
+type AuthSessionListener = (snapshot: AuthSessionSnapshot) => void;
+
+const EMPTY_SESSION: AuthSessionSnapshot = {
+  accessToken: '',
+  refreshToken: '',
+  tokenType: 'Bearer',
+  accessTokenExpiresAt: null,
+};
+
+let currentSession: AuthSessionSnapshot = { ...EMPTY_SESSION };
+const listeners = new Set<AuthSessionListener>();
+
+export function getAuthSession(): AuthSessionSnapshot {
+  return { ...currentSession };
+}
+
+export function setAuthSession(tokens: AuthSessionTokens): void {
+  if (!tokens.accessToken) {
+    throw new Error('인증 응답에 Access Token이 없습니다.');
+  }
+  if (!Number.isFinite(tokens.accessTokenExpiresIn) || tokens.accessTokenExpiresIn <= 0) {
+    throw new Error('Access Token 만료 시간이 올바르지 않습니다.');
+  }
+
+  currentSession = {
+    accessToken: tokens.accessToken,
+    refreshToken: tokens.refreshToken ?? '',
+    tokenType: tokens.tokenType || 'Bearer',
+    accessTokenExpiresAt: Date.now() + tokens.accessTokenExpiresIn * 1000,
+  };
+  notify();
+}
+
+export function clearAuthSession(): void {
+  currentSession = { ...EMPTY_SESSION };
+  notify();
+}
+
+export function isAccessTokenExpired(clockSkewSeconds = 30): boolean {
+  if (!currentSession.accessToken || currentSession.accessTokenExpiresAt === null) {
+    return true;
+  }
+  return currentSession.accessTokenExpiresAt <= Date.now() + clockSkewSeconds * 1000;
+}
+
+export function subscribeAuthSession(listener: AuthSessionListener): () => void {
+  listeners.add(listener);
+  return () => listeners.delete(listener);
+}
+
+function notify(): void {
+  const snapshot = getAuthSession();
+  listeners.forEach((listener) => listener(snapshot));
+}
