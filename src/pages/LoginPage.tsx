@@ -1,5 +1,10 @@
 import { useState, type FormEvent } from 'react';
-import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import {
+  Link,
+  useLocation,
+  useNavigate,
+  useSearchParams,
+} from 'react-router-dom';
 import AuthLayout from '../components/AuthLayout';
 import FormField from '../components/FormField';
 import Button from '../components/Button';
@@ -14,8 +19,19 @@ export function LoginPage() {
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const { authenticate, authLoading } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const [searchParams] = useSearchParams();
   const expired = searchParams.get('expired') === '1';
+  const requestedPath = (
+    location.state as { from?: unknown } | null
+  )?.from;
+  const loginDestination = (
+    typeof requestedPath === 'string'
+    && requestedPath.startsWith('/')
+    && !requestedPath.startsWith('//')
+  )
+    ? requestedPath
+    : '/';
 
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault();
@@ -24,7 +40,7 @@ export function LoginPage() {
       setFormError(null);
       setFieldErrors({});
       await authenticate({ loginId, password });
-      navigate('/');
+      navigate(loginDestination, { replace: true });
     } catch (error) {
       const nextFieldErrors = getApiFieldErrors(error);
       setFieldErrors(nextFieldErrors);
