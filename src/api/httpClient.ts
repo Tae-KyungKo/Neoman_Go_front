@@ -1,9 +1,11 @@
-import { API_BASE_URL } from '../config/env';
 import {
-  clearTokens,
-  getRefreshToken,
-  saveTokens,
-} from '../auth/tokenStorage';
+  getAuthSession,
+  isAccessTokenExpired,
+  setAuthSession,
+  setCsrfToken,
+} from '../auth/authSession';
+import { clearTokens } from '../auth/tokenStorage';
+import { API_BASE_URL } from '../config/env';
 
 interface ApiEnvelope<T> {
   success?: boolean;
@@ -11,6 +13,17 @@ interface ApiEnvelope<T> {
   message?: string;
   data?: T;
   errors?: unknown;
+}
+
+interface WebTokenResponse {
+  accessToken: string;
+  tokenType: string;
+  accessTokenExpiresIn: number;
+}
+
+export interface CsrfTokenResponse {
+  token: string;
+  headerName: string;
 }
 
 export interface ApiFieldError {
@@ -32,30 +45,70 @@ export class ApiError extends Error {
   }
 }
 
+const WEB_AUTH_PATH = '/api/auth/web/';
+const CSRF_PATH = `${WEB_AUTH_PATH}csrf`;
 let reissuePromise: Promise<string> | null = null;
+let csrfPromise: Promise<CsrfTokenResponse> | null = null;
 
-interface ReissuedTokens {
-  accessToken: string;
-  refreshToken: string;
-  tokenType: string;
-  accessTokenExpiresIn: number;
+function normalizePath(path: string): string {
+  return path.startsWith('/') ? path : `/${path}`;
 }
 
-export async function requestTokenReissue(
-  refreshToken: string,
-): Promise<ReissuedTokens> {
-  const response = await sendRequest<ReissuedTokens>(
-    '/api/auth/reissue',
-    {
-      method: 'POST',
-      body: JSON.stringify({ refreshToken }),
-    },
-  );
+function isUnsafeMethod(method?: string): boolean {
+  const normalizedMethod = (method ?? 'GET').toUpperCase();
+  return !['GET', 'HEAD', 'OPTIONS', 'TRACE'].includes(normalizedMethod);
+}
 
-  if (response.error) {
-    throw response.error;
+function expireAuthSession(): void {
+  clearTokens();
+  window.dispatchEvent(new Event('neomango:auth-expired'));
+}
+
+export async function ensureCsrfToken(): Promise<CsrfTokenResponse> {
+  const currentToken = getAuthSession().csrfToken;
+  if (currentToken) {
+    return { token: currentToken, headerName: 'X-XSRF-TOKEN' };
   }
-  return response.data as ReissuedTokens;
+
+  if (csrfPromise) {
+    return csrfPromise;
+  }
+
+  csrfPromise = sendRequest<CsrfTokenResponse>(
+    CSRF_PATH,
+    { credentials: 'include' },
+  )
+    .then((response) => {
+      if (response.error) {
+        throw response.error;
+      }
+
+      const csrf = response.data as CsrfTokenResponse;
+      setCsrfToken(csrf.token);
+      return csrf;
+    })
+    .finally(() => {
+      csrfPromise = null;
+    });
+
+  return csrfPromise;
+}
+
+async function prepareRequest(path: string, init: RequestInit): Promise<RequestInit> {
+  const headers = new Headers(init.headers);
+
+  if (path.startsWith(WEB_AUTH_PATH) && isUnsafeMethod(init.method)) {
+    const csrf = await ensureCsrfToken();
+    if (!headers.has(csrf.headerName)) {
+      headers.set(csrf.headerName, csrf.token);
+    }
+  }
+
+  return {
+    ...init,
+    credentials: init.credentials ?? 'include',
+    headers,
+  };
 }
 
 export async function refreshAccessToken(): Promise<string> {
@@ -63,21 +116,32 @@ export async function refreshAccessToken(): Promise<string> {
     return reissuePromise;
   }
 
-  const refreshToken = getRefreshToken();
-  if (!refreshToken) {
-    clearTokens();
-    window.dispatchEvent(new Event('neomango:auth-expired'));
-    throw new ApiError('로그인이 만료되었습니다.', 401, 'REFRESH_TOKEN_MISSING');
-  }
+  reissuePromise = (async () => {
+    const csrf = await ensureCsrfToken();
+    const response = await sendRequest<WebTokenResponse>(
+      `${WEB_AUTH_PATH}refresh`,
+      {
+        method: 'POST',
+        credentials: 'include',
+        headers: { [csrf.headerName]: csrf.token },
+      },
+    );
 
-  reissuePromise = requestTokenReissue(refreshToken)
-    .then((tokens) => {
-      saveTokens(tokens);
-      return tokens.accessToken;
-    })
+    if (response.error) {
+      throw response.error;
+    }
+
+    const tokens = response.data as WebTokenResponse;
+    setAuthSession(tokens);
+    return tokens.accessToken;
+  })()
     .catch((error) => {
-      clearTokens();
-      window.dispatchEvent(new Event('neomango:auth-expired'));
+      if (
+        error instanceof ApiError
+        && (error.status === 401 || error.status === 403)
+      ) {
+        expireAuthSession();
+      }
       throw error;
     })
     .finally(() => {
@@ -92,13 +156,42 @@ export async function requestApi<T>(
   init: RequestInit = {},
   accessToken?: string,
 ): Promise<T> {
-  const response = await sendRequest<T>(path, init, accessToken);
+  const normalizedPath = normalizePath(path);
+  const isWebAuthRequest = normalizedPath.startsWith(WEB_AUTH_PATH);
+  const session = getAuthSession();
+  let requestAccessToken = isWebAuthRequest
+    ? undefined
+    : (accessToken ?? session.accessToken ?? undefined);
 
-  if (response.error?.status === 401 && accessToken) {
+  if (
+    requestAccessToken
+    && requestAccessToken === session.accessToken
+    && isAccessTokenExpired()
+  ) {
+    requestAccessToken = await refreshAccessToken();
+  }
+
+  const preparedInit = await prepareRequest(normalizedPath, init);
+  const response = await sendRequest<T>(
+    normalizedPath,
+    preparedInit,
+    requestAccessToken,
+  );
+
+  if (response.error?.status === 401 && requestAccessToken && !isWebAuthRequest) {
     const nextAccessToken = await refreshAccessToken();
-    const retryResponse = await sendRequest<T>(path, init, nextAccessToken);
+    const retryResponse = await sendRequest<T>(
+      normalizedPath,
+      preparedInit,
+      nextAccessToken,
+    );
+
     if (!retryResponse.error) {
       return retryResponse.data as T;
+    }
+
+    if (retryResponse.error.status === 401 || retryResponse.error.status === 403) {
+      expireAuthSession();
     }
     throw retryResponse.error;
   }
@@ -114,7 +207,6 @@ async function sendRequest<T>(
   init: RequestInit,
   accessToken?: string,
 ): Promise<{ data?: T; error?: ApiError }> {
-  const normalizedPath = path.startsWith('/') ? path : `/${path}`;
   const headers = new Headers(init.headers);
 
   headers.set('Accept', 'application/json');
@@ -128,12 +220,19 @@ async function sendRequest<T>(
   let response: Response;
 
   try {
-    response = await fetch(`${API_BASE_URL}${normalizedPath}`, {
+    response = await fetch(`${API_BASE_URL}${normalizePath(path)}`, {
       ...init,
+      credentials: init.credentials ?? 'include',
       headers,
     });
   } catch {
-    return { error: new ApiError('서버에 연결할 수 없습니다.', null, 'NETWORK_ERROR') };
+    return {
+      error: new ApiError(
+        '서버에 연결할 수 없습니다.',
+        null,
+        'NETWORK_ERROR',
+      ),
+    };
   }
 
   const responseText = await response.text();
@@ -144,7 +243,11 @@ async function sendRequest<T>(
       body = JSON.parse(responseText) as ApiEnvelope<T> | T;
     } catch {
       return {
-        error: new ApiError('서버 응답을 확인할 수 없습니다.', response.status, 'INVALID_RESPONSE'),
+        error: new ApiError(
+          '서버 응답을 확인할 수 없습니다.',
+          response.status,
+          'INVALID_RESPONSE',
+        ),
       };
     }
   }
@@ -179,13 +282,13 @@ export function getApiFieldErrors(error: unknown): Record<string, string> {
 
   return error.errors.reduce<Record<string, string>>((fieldErrors, item) => {
     if (
-      item &&
-      typeof item === 'object' &&
-      'field' in item &&
-      'message' in item &&
-      typeof item.field === 'string' &&
-      typeof item.message === 'string' &&
-      !fieldErrors[item.field]
+      item
+      && typeof item === 'object'
+      && 'field' in item
+      && 'message' in item
+      && typeof item.field === 'string'
+      && typeof item.message === 'string'
+      && !fieldErrors[item.field]
     ) {
       const field = item.field.includes('.')
         ? item.field.slice(item.field.lastIndexOf('.') + 1)

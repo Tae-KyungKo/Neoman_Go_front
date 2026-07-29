@@ -1,4 +1,8 @@
-import { requestApi, requestTokenReissue } from './httpClient';
+import {
+  ensureCsrfToken,
+  requestApi,
+  type CsrfTokenResponse,
+} from './httpClient';
 
 export interface LoginCredentials {
   loginId: string;
@@ -16,11 +20,6 @@ export interface WebTokenResponse {
   accessToken: string;
   tokenType: string;
   accessTokenExpiresIn: number;
-}
-
-export interface CsrfTokenResponse {
-  token: string;
-  headerName: string;
 }
 
 export interface AvailabilityResponse {
@@ -51,41 +50,28 @@ export function requestLogin(credentials: LoginCredentials): Promise<TokenRespon
 }
 
 export function requestCsrfToken(): Promise<CsrfTokenResponse> {
-  return requestApi<CsrfTokenResponse>('/api/auth/web/csrf', {
-    credentials: 'include',
-  });
+  return ensureCsrfToken();
 }
 
 export function requestWebLogin(
   credentials: LoginCredentials,
-  csrfToken: string,
 ): Promise<WebTokenResponse> {
   return requestApi<WebTokenResponse>('/api/auth/web/login', {
     method: 'POST',
-    credentials: 'include',
-    headers: { 'X-XSRF-TOKEN': csrfToken },
     body: JSON.stringify(credentials),
   });
 }
 
-export function requestWebRefresh(csrfToken: string): Promise<WebTokenResponse> {
+export function requestWebRefresh(): Promise<WebTokenResponse> {
   return requestApi<WebTokenResponse>('/api/auth/web/refresh', {
     method: 'POST',
-    credentials: 'include',
-    headers: { 'X-XSRF-TOKEN': csrfToken },
   });
 }
 
-export function requestWebLogout(csrfToken: string): Promise<void> {
+export function requestWebLogout(): Promise<void> {
   return requestApi<void>('/api/auth/web/logout', {
     method: 'POST',
-    credentials: 'include',
-    headers: { 'X-XSRF-TOKEN': csrfToken },
   });
-}
-
-export function requestReissue(refreshToken: string): Promise<TokenResponse> {
-  return requestTokenReissue(refreshToken);
 }
 
 export function requestSignup(payload: SignupPayload): Promise<SignupResponse> {

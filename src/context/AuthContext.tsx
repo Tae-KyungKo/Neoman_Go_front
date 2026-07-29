@@ -9,9 +9,7 @@ import {
 } from '../api/authApi';
 import { getCurrentUser, type MeResponse } from '../api/userApi';
 import {
-  getAuthSession,
   setAuthSession,
-  setCsrfToken,
 } from '../auth/authSession';
 import { clearTokens } from '../auth/tokenStorage';
 
@@ -41,7 +39,6 @@ interface AuthContextValue {
 
 interface RestoredSession {
   tokens: WebTokenResponse;
-  csrfToken: string;
   me: MeResponse;
 }
 
@@ -50,10 +47,10 @@ let initialSessionPromise: Promise<RestoredSession> | null = null;
 
 function restoreWebSession(): Promise<RestoredSession> {
   if (!initialSessionPromise) {
-    initialSessionPromise = requestCsrfToken().then(async (csrf) => {
-      const tokens = await requestWebRefresh(csrf.token);
+    initialSessionPromise = requestCsrfToken().then(async () => {
+      const tokens = await requestWebRefresh();
       const me = await getCurrentUser(tokens.accessToken);
-      return { tokens, csrfToken: csrf.token, me };
+      return { tokens, me };
     });
   }
   return initialSessionPromise;
@@ -82,36 +79,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     status: me.status,
   }), []);
 
-  const ensureCsrfToken = useCallback(async (): Promise<string> => {
-    const currentCsrfToken = getAuthSession().csrfToken;
-    if (currentCsrfToken) {
-      return currentCsrfToken;
-    }
-
-    const csrf = await requestCsrfToken();
-    setCsrfToken(csrf.token);
-    return csrf.token;
-  }, []);
-
   const logout = useCallback(async () => {
     setOperationLoading(true);
     try {
-      const csrfToken = await ensureCsrfToken();
-      await requestWebLogout(csrfToken);
+      await requestWebLogout();
     } finally {
       clearTokens();
       setUser(null);
       setStatus('unauthenticated');
       setOperationLoading(false);
     }
-  }, [ensureCsrfToken]);
+  }, []);
 
   const authenticate = useCallback(async (credentials: LoginCredentials): Promise<AuthUser> => {
     setOperationLoading(true);
 
     try {
-      const csrfToken = await ensureCsrfToken();
-      const tokens = await requestWebLogin(credentials, csrfToken);
+      const tokens = await requestWebLogin(credentials);
       setAuthSession(tokens);
 
       const me = await getCurrentUser(tokens.accessToken);
@@ -127,15 +111,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } finally {
       setOperationLoading(false);
     }
-  }, [ensureCsrfToken, normalizeUser]);
+  }, [normalizeUser]);
 
   useEffect(() => {
     let active = true;
 
     restoreWebSession()
-      .then(({ tokens, csrfToken, me }) => {
+      .then(({ tokens, me }) => {
         if (!active) return;
-        setCsrfToken(csrfToken);
         setAuthSession(tokens);
         setUser(normalizeUser(me));
         setStatus('authenticated');
