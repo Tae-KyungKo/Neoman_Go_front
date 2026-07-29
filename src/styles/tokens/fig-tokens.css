@@ -75,34 +75,36 @@
 }
 
 :root[data-theme="dark"] {
-  --primary-normal: rgb(91,132,255);
-  --primary-normal-2: rgb(91,132,255);
-  --primary-normal-3: var(--blue-60);
-  --primary-strong: var(--blue-55);
-  --primary-heavy: var(--blue-50);
+  color-scheme: dark;
 
-  --background-normal-normal: rgb(27,28,30);
-  --background-normal-alternative: var(--cool-neutral-5);
-  --background-elevated-normal: var(--cool-neutral-17);
-  --background-elevated-alternative: var(--cool-neutral-7);
+  --primary-normal: rgb(155, 139, 255);
+  --primary-normal-2: rgb(139, 124, 246);
+  --primary-normal-3: rgb(108, 92, 231);
+  --primary-strong: rgb(95, 78, 218);
+  --primary-heavy: rgb(82, 66, 199);
 
-  --label-normal: rgb(247,247,247);
-  --label-alternative: rgba(174,176,182,0.61);
-  --label-alternative-2: rgba(174,176,182,0.61);
-  --label-assistive: rgba(174,176,182,0.28);
-  --label-strong: var(--common-100);
+  --background-normal-normal: rgb(27, 24, 44);
+  --background-normal-alternative: rgb(13, 12, 24);
+  --background-elevated-normal: rgb(35, 31, 56);
+  --background-elevated-alternative: rgb(20, 18, 34);
 
-  --line-normal-normal: rgba(112,115,124,0.32);
-  --line-normal-alternative: rgba(112,115,124,0.22);
-  --line-normal-strong: rgba(194,196,200,0.52);
-  --line-solid-normal: var(--cool-neutral-25);
+  --label-normal: rgb(247, 245, 255);
+  --label-alternative: rgba(211, 205, 232, 0.72);
+  --label-alternative-2: rgba(211, 205, 232, 0.72);
+  --label-assistive: rgba(211, 205, 232, 0.42);
+  --label-strong: rgb(255, 255, 255);
 
-  --fill-normal: rgba(112,115,124,0.22);
-  --fill-alternative: rgba(112,115,124,0.12);
-  --fill-strong: rgba(112,115,124,0.28);
+  --line-normal-normal: rgba(174, 161, 218, 0.3);
+  --line-normal-alternative: rgba(174, 161, 218, 0.18);
+  --line-normal-strong: rgba(205, 196, 238, 0.54);
+  --line-solid-normal: rgb(58, 51, 84);
 
-  --interaction-inactive: var(--cool-neutral-40);
-  --interaction-disable: var(--cool-neutral-22);
+  --fill-normal: rgba(145, 126, 211, 0.22);
+  --fill-alternative: rgba(145, 126, 211, 0.13);
+  --fill-strong: rgba(145, 126, 211, 0.32);
+
+  --interaction-inactive: rgb(115, 105, 145);
+  --interaction-disable: rgb(48, 43, 67);
 
   --status-positive: var(--green-60);
   --status-negative: var(--red-60);
