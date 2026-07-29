@@ -18,3 +18,8 @@
   background: var(--primary-normal-3);
   border-color: var(--primary-normal-3);
 }
+
+:root[data-theme="dark"] .nm-chip--active {
+  background: var(--primary-heavy);
+  border-color: var(--primary-heavy);
+}
