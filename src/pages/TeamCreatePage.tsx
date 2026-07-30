@@ -7,7 +7,6 @@ import TextareaField from '../components/TextareaField';
 import Button from '../components/Button';
 import { createTeam } from '../api/teamApi';
 import { getApiErrorMessage, getApiFieldErrors } from '../api/httpClient';
-import { getAccessToken } from '../auth/tokenStorage';
 import { useAuth } from '../context/AuthContext';
 import { CATEGORIES } from '../data/categories';
 import './TeamCreatePage.css';
@@ -41,9 +40,8 @@ export function TeamCreatePage() {
   const handleSubmit = async () => {
     if (!isValid || isSubmitting) return;
 
-    const accessToken = getAccessToken();
     const category = CATEGORIES.find((item) => item.id === categoryId);
-    if (!accessToken || !category) return;
+    if (!category) return;
 
     setIsSubmitting(true);
     setFormError(null);
@@ -59,7 +57,6 @@ export function TeamCreatePage() {
           location: location.trim(),
           activityTime: time.trim(),
         },
-        accessToken,
       );
       navigate(`/teams/${team.id}`);
     } catch (error) {

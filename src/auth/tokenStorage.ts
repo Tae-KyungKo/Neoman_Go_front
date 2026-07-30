@@ -1,35 +1,27 @@
-import type { TokenResponse } from '../api/authApi';
+import {
+  clearAuthSession,
+} from './authSession';
 
-const ACCESS_TOKEN_STORAGE_KEY = 'accessToken';
-const REFRESH_TOKEN_STORAGE_KEY = 'refreshToken';
-const TOKEN_TYPE_STORAGE_KEY = 'tokenType';
-const ACCESS_TOKEN_EXPIRES_IN_STORAGE_KEY = 'accessTokenExpiresIn';
+const LEGACY_TOKEN_STORAGE_KEYS = [
+  'accessToken',
+  'refreshToken',
+  'tokenType',
+  'accessTokenExpiresIn',
+] as const;
 
-export function getAccessToken(): string {
-  return localStorage.getItem(ACCESS_TOKEN_STORAGE_KEY) ?? '';
-}
-
-export function getRefreshToken(): string {
-  return localStorage.getItem(REFRESH_TOKEN_STORAGE_KEY) ?? '';
-}
-
-export function saveTokens(tokens: TokenResponse): void {
-  if (!tokens.accessToken || !tokens.refreshToken) {
-    throw new Error('로그인 응답에 필수 token이 없습니다.');
-  }
-
-  localStorage.setItem(ACCESS_TOKEN_STORAGE_KEY, tokens.accessToken);
-  localStorage.setItem(REFRESH_TOKEN_STORAGE_KEY, tokens.refreshToken);
-  localStorage.setItem(TOKEN_TYPE_STORAGE_KEY, tokens.tokenType || 'Bearer');
-  localStorage.setItem(
-    ACCESS_TOKEN_EXPIRES_IN_STORAGE_KEY,
-    String(tokens.accessTokenExpiresIn),
-  );
-}
+removeLegacyStoredTokens();
 
 export function clearTokens(): void {
-  localStorage.removeItem(ACCESS_TOKEN_STORAGE_KEY);
-  localStorage.removeItem(REFRESH_TOKEN_STORAGE_KEY);
-  localStorage.removeItem(TOKEN_TYPE_STORAGE_KEY);
-  localStorage.removeItem(ACCESS_TOKEN_EXPIRES_IN_STORAGE_KEY);
+  clearAuthSession();
+  removeLegacyStoredTokens();
+}
+
+function removeLegacyStoredTokens(): void {
+  if (typeof window === 'undefined') return;
+
+  try {
+    LEGACY_TOKEN_STORAGE_KEYS.forEach((key) => window.localStorage.removeItem(key));
+  } catch {
+    // Storage may be blocked by browser privacy settings. The in-memory session remains authoritative.
+  }
 }

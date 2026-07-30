@@ -15,7 +15,6 @@ import {
   type NoticeSummaryResponse,
 } from '../api/noticeApi';
 import { ApiError, getApiErrorMessage } from '../api/httpClient';
-import { getAccessToken } from '../auth/tokenStorage';
 import { useAuth } from '../context/AuthContext';
 
 type Mode = 'list' | 'form';
@@ -109,20 +108,19 @@ export function AdminNoticePage() {
   };
 
   const handleSave = async () => {
-    const accessToken = getAccessToken();
     const normalizedTitle = title.trim();
     const normalizedContent = body.trim();
-    if (!accessToken || !normalizedTitle || !normalizedContent || isSaving) return;
+    if (!normalizedTitle || !normalizedContent || isSaving) return;
 
     setIsSaving(true);
     setNoticeError(null);
     try {
       const payload = { title: normalizedTitle, content: normalizedContent };
       if (editingNoticeId === null) {
-        await createNotice(payload, accessToken);
+        await createNotice(payload);
         setPage(1);
       } else {
-        await updateNotice(editingNoticeId, payload, accessToken);
+        await updateNotice(editingNoticeId, payload);
       }
       setMode('list');
       setEditingNoticeId(null);
@@ -142,13 +140,12 @@ export function AdminNoticePage() {
   };
 
   const handleDelete = async () => {
-    const accessToken = getAccessToken();
-    if (!accessToken || confirmId === null || isDeleting) return;
+    if (confirmId === null || isDeleting) return;
 
     setIsDeleting(true);
     setNoticeError(null);
     try {
-      await deleteNotice(confirmId, accessToken);
+      await deleteNotice(confirmId);
       setConfirmId(null);
       setReloadKey((key) => key + 1);
     } catch (error) {

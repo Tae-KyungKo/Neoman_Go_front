@@ -1,9 +1,21 @@
 import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from 'react';
-import { requestLogin, requestLogout, type LoginCredentials } from '../api/authApi';
+import {
+  requestCsrfToken,
+  requestWebLogin,
+  requestWebLogout,
+  requestWebRefresh,
+  type LoginCredentials,
+  type WebTokenResponse,
+} from '../api/authApi';
 import { getCurrentUser, type MeResponse } from '../api/userApi';
-import { clearTokens, getAccessToken, saveTokens } from '../auth/tokenStorage';
+import { ApiError } from '../api/httpClient';
+import {
+  setAuthSession,
+} from '../auth/authSession';
+import { clearTokens } from '../auth/tokenStorage';
 
 export type UserRole = 'user' | 'admin';
+export type AuthStatus = 'checking' | 'authenticated' | 'unauthenticated' | 'unavailable';
 
 export interface AuthUser {
   id?: number;
@@ -17,37 +29,50 @@ export interface AuthUser {
 
 interface AuthContextValue {
   user: AuthUser | null;
+  status: AuthStatus;
   login: (user: AuthUser) => void;
   updateCurrentUser: (updates: Partial<AuthUser>) => void;
   authenticate: (credentials: LoginCredentials) => Promise<AuthUser>;
   logout: () => Promise<void>;
   authLoading: boolean;
   authReady: boolean;
+  retrySessionRestore: () => void;
+}
+
+interface RestoredSession {
+  tokens: WebTokenResponse;
+  me: MeResponse;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
+let initialSessionPromise: Promise<RestoredSession> | null = null;
+
+function restoreWebSession(): Promise<RestoredSession> {
+  if (!initialSessionPromise) {
+    initialSessionPromise = requestCsrfToken().then(async () => {
+      const tokens = await requestWebRefresh();
+      setAuthSession(tokens);
+      const me = await getCurrentUser();
+      return { tokens, me };
+    }).finally(() => {
+      initialSessionPromise = null;
+    });
+  }
+  return initialSessionPromise;
+}
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
-  const [authLoading, setAuthLoading] = useState(false);
-  const [authReady, setAuthReady] = useState(() => !getAccessToken());
+  const [status, setStatus] = useState<AuthStatus>('checking');
+  const [operationLoading, setOperationLoading] = useState(false);
 
-  const login = (nextUser: AuthUser) => setUser(nextUser);
+  const login = (nextUser: AuthUser) => {
+    setUser(nextUser);
+    setStatus('authenticated');
+  };
+
   const updateCurrentUser = (updates: Partial<AuthUser>) => {
     setUser((currentUser) => currentUser ? { ...currentUser, ...updates } : null);
-  };
-  const logout = async () => {
-    const accessToken = getAccessToken();
-
-    try {
-      if (accessToken) {
-        await requestLogout(accessToken);
-      }
-    } finally {
-      clearTokens();
-      setUser(null);
-      setAuthReady(true);
-    }
   };
 
   const normalizeUser = useCallback((me: MeResponse, loginId?: string): AuthUser => ({
@@ -59,79 +84,104 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     status: me.status,
   }), []);
 
-  const authenticate = useCallback(async (credentials: LoginCredentials): Promise<AuthUser> => {
-    setAuthLoading(true);
-
+  const applyRestoredSession = useCallback(async () => {
+    setStatus('checking');
     try {
-      const tokens = await requestLogin(credentials);
-      saveTokens(tokens);
-
-      const me = await getCurrentUser(tokens.accessToken);
-      const authenticatedUser = normalizeUser(me, credentials.loginId);
-      setUser(authenticatedUser);
-      setAuthReady(true);
-
-      return authenticatedUser;
+      const { tokens, me } = await restoreWebSession();
+      setAuthSession(tokens);
+      setUser(normalizeUser(me));
+      setStatus('authenticated');
     } catch (error) {
       clearTokens();
       setUser(null);
-      setAuthReady(true);
+      setStatus(
+        error instanceof ApiError && (error.status === 401 || error.status === 403)
+          ? 'unauthenticated'
+          : 'unavailable',
+      );
+    }
+  }, [normalizeUser]);
+
+  const logout = useCallback(async () => {
+    setOperationLoading(true);
+    try {
+      await requestWebLogout();
+      clearTokens();
+      setUser(null);
+      setStatus('unauthenticated');
+    } finally {
+      setOperationLoading(false);
+    }
+  }, []);
+
+  const authenticate = useCallback(async (credentials: LoginCredentials): Promise<AuthUser> => {
+    setOperationLoading(true);
+    let webSessionCreated = false;
+
+    try {
+      const tokens = await requestWebLogin(credentials);
+      webSessionCreated = true;
+      setAuthSession(tokens);
+
+      const me = await getCurrentUser();
+      const authenticatedUser = normalizeUser(me, credentials.loginId);
+      setUser(authenticatedUser);
+      setStatus('authenticated');
+      return authenticatedUser;
+    } catch (error) {
+      if (webSessionCreated) {
+        await requestWebLogout().catch(() => undefined);
+      }
+      clearTokens();
+      setUser(null);
+      setStatus('unauthenticated');
       throw error;
     } finally {
-      setAuthLoading(false);
+      setOperationLoading(false);
     }
   }, [normalizeUser]);
 
   useEffect(() => {
-    const accessToken = getAccessToken();
-
-    if (!accessToken) {
-      return;
-    }
-
-    let active = true;
-    setAuthLoading(true);
-
-    getCurrentUser(accessToken)
-      .then((me) => {
-        if (active) {
-          setUser(normalizeUser(me));
-        }
-      })
-      .catch(() => {
-        if (active) {
-          clearTokens();
-          setUser(null);
-        }
-      })
-      .finally(() => {
-        if (active) {
-          setAuthLoading(false);
-          setAuthReady(true);
-        }
-      });
-
-    return () => {
-      active = false;
-    };
-  }, [normalizeUser]);
+    void applyRestoredSession();
+  }, [applyRestoredSession]);
 
   useEffect(() => {
     const handleAuthExpired = () => {
+      clearTokens();
       setUser(null);
-      setAuthLoading(false);
-      setAuthReady(true);
+      setOperationLoading(false);
+      setStatus('unauthenticated');
     };
 
     window.addEventListener('neomango:auth-expired', handleAuthExpired);
     return () => window.removeEventListener('neomango:auth-expired', handleAuthExpired);
   }, []);
 
+  const authReady = status !== 'checking';
+  const authLoading = status === 'checking' || operationLoading;
+
   return (
     <AuthContext.Provider
-      value={{ user, login, updateCurrentUser, authenticate, logout, authLoading, authReady }}
+      value={{
+        user,
+        status,
+        login,
+        updateCurrentUser,
+        authenticate,
+        logout,
+        authLoading,
+        authReady,
+        retrySessionRestore: () => void applyRestoredSession(),
+      }}
     >
-      {authReady ? children : null}
+      {status === 'unavailable' ? (
+        <main style={{ padding: 40, textAlign: 'center' }}>
+          <p>인증 서버에 연결할 수 없습니다.</p>
+          <button type="button" onClick={() => void applyRestoredSession()}>
+            다시 시도
+          </button>
+        </main>
+      ) : authReady ? children : null}
     </AuthContext.Provider>
   );
 }

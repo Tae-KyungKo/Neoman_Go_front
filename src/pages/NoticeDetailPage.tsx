@@ -5,7 +5,6 @@ import Button from '../components/Button';
 import Icon from '../components/icons/Icon';
 import { deleteNotice, getNotice, type NoticeResponse } from '../api/noticeApi';
 import { getApiErrorMessage } from '../api/httpClient';
-import { getAccessToken } from '../auth/tokenStorage';
 import { useAuth } from '../context/AuthContext';
 import './NoticeDetailPage.css';
 
@@ -76,14 +75,13 @@ export function NoticeDetailPage() {
   }
 
   const handleDelete = async () => {
-    const accessToken = getAccessToken();
-    if (!accessToken || isDeleting) return;
+    if (isDeleting) return;
 
     setDeleteError(null);
     setIsDeleting(true);
 
     try {
-      await deleteNotice(notice.id, accessToken);
+      await deleteNotice(notice.id);
       setConfirmOpen(false);
       navigate('/notices');
     } catch (error) {

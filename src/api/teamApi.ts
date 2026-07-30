@@ -131,7 +131,6 @@ export interface TeamCreateResponse {
 
 export function createTeam(
   payload: TeamCreatePayload,
-  accessToken: string,
 ): Promise<TeamCreateResponse> {
   return requestApi<TeamCreateResponse>(
     '/api/teams',
@@ -139,7 +138,6 @@ export function createTeam(
       method: 'POST',
       body: JSON.stringify(payload),
     },
-    accessToken,
   );
 }
 
@@ -170,7 +168,6 @@ export function getTeams(
 export function createTeamApplication(
   teamId: number,
   payload: TeamApplicationPayload,
-  accessToken: string,
 ): Promise<TeamApplicationResponse> {
   return requestApi<TeamApplicationResponse>(
     `/api/teams/${teamId}/applications`,
@@ -178,106 +175,103 @@ export function createTeamApplication(
       method: 'POST',
       body: JSON.stringify(payload),
     },
-    accessToken,
   );
 }
 
 export function getMyTeamApplications(
-  accessToken: string,
+  includeRead = false,
 ): Promise<TeamApplicationSummaryResponse[]> {
+  const query = includeRead ? '?includeRead=true' : '';
   return requestApi<TeamApplicationSummaryResponse[]>(
-    '/api/me/team-applications',
-    {},
-    accessToken,
+    `/api/me/team-applications${query}`,
   );
 }
 
-export function getMyTeams(accessToken: string): Promise<MyTeamSummaryResponse[]> {
-  return requestApi<MyTeamSummaryResponse[]>('/api/me/teams', {}, accessToken);
+export function markTeamApplicationAsRead(
+  applicationId: number,
+): Promise<void> {
+  return requestApi<void>(
+    `/api/me/team-applications/${applicationId}/read`,
+    { method: 'PATCH' },
+  );
+}
+
+export function markAllTeamApplicationsAsRead(): Promise<void> {
+  return requestApi<void>(
+    '/api/me/team-applications/read-all',
+    { method: 'PATCH' },
+  );
+}
+
+export function getMyTeams(): Promise<MyTeamSummaryResponse[]> {
+  return requestApi<MyTeamSummaryResponse[]>('/api/me/teams');
 }
 
 export function cancelTeamApplication(
   applicationId: number,
-  accessToken: string,
 ): Promise<TeamApplicationResponse> {
   return requestApi<TeamApplicationResponse>(
     `/api/team-applications/${applicationId}/cancel`,
     { method: 'PATCH' },
-    accessToken,
   );
 }
 
 export function getTeamApplicationsForOwner(
   teamId: number,
-  accessToken: string,
 ): Promise<TeamApplicationOwnerResponse[]> {
   return requestApi<TeamApplicationOwnerResponse[]>(
     `/api/teams/${teamId}/applications`,
-    {},
-    accessToken,
   );
 }
 
 export function approveTeamApplication(
   applicationId: number,
-  accessToken: string,
 ): Promise<TeamApplicationResponse> {
   return requestApi<TeamApplicationResponse>(
     `/api/team-applications/${applicationId}/approve`,
     { method: 'POST' },
-    accessToken,
   );
 }
 
 export function rejectTeamApplication(
   applicationId: number,
-  accessToken: string,
 ): Promise<TeamApplicationResponse> {
   return requestApi<TeamApplicationResponse>(
     `/api/team-applications/${applicationId}/reject`,
     { method: 'POST' },
-    accessToken,
   );
 }
 
 export function getTeamMembers(
   teamId: number,
-  accessToken: string,
 ): Promise<TeamMemberListResponse[]> {
   return requestApi<TeamMemberListResponse[]>(
     `/api/teams/${teamId}/members`,
-    {},
-    accessToken,
   );
 }
 
 export function kickTeamMember(
   teamId: number,
   teamMemberId: number,
-  accessToken: string,
 ): Promise<void> {
   return requestApi<void>(
     `/api/teams/${teamId}/members/${teamMemberId}/kick`,
     { method: 'POST' },
-    accessToken,
   );
 }
 
 export function leaveTeam(
   teamId: number,
-  accessToken: string,
 ): Promise<void> {
   return requestApi<void>(
     `/api/teams/${teamId}/members/me/leave`,
     { method: 'POST' },
-    accessToken,
   );
 }
 
 export function delegateTeamOwner(
   teamId: number,
   targetTeamMemberId: number,
-  accessToken: string,
 ): Promise<void> {
   return requestApi<void>(
     `/api/teams/${teamId}/owner/delegate`,
@@ -285,39 +279,32 @@ export function delegateTeamOwner(
       method: 'POST',
       body: JSON.stringify({ targetTeamMemberId }),
     },
-    accessToken,
   );
 }
 
 export function closeTeam(
   teamId: number,
-  accessToken: string,
 ): Promise<void> {
   return requestApi<void>(
     `/api/teams/${teamId}/close`,
     { method: 'PATCH' },
-    accessToken,
   );
 }
 
 export function reopenTeam(
   teamId: number,
-  accessToken: string,
 ): Promise<void> {
   return requestApi<void>(
     `/api/teams/${teamId}/reopen`,
     { method: 'PATCH' },
-    accessToken,
   );
 }
 
 export function deleteTeam(
   teamId: number,
-  accessToken: string,
 ): Promise<void> {
   return requestApi<void>(
     `/api/teams/${teamId}`,
     { method: 'DELETE' },
-    accessToken,
   );
 }

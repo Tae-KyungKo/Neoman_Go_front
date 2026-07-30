@@ -52,47 +52,34 @@ export class NotificationStreamError extends Error {
 
 export function getNotifications(
   page: number,
-  accessToken: string,
   size = 20,
 ): Promise<NotificationPageResponse> {
   return requestApi<NotificationPageResponse>(
     `/api/notifications?page=${page}&size=${size}`,
-    {},
-    accessToken,
   );
 }
 
-export function getUnreadNotificationCount(
-  accessToken: string,
-): Promise<UnreadNotificationCountResponse> {
-  return requestApi<UnreadNotificationCountResponse>(
-    '/api/notifications/unread-count',
-    {},
-    accessToken,
-  );
+export function getUnreadNotificationCount(): Promise<UnreadNotificationCountResponse> {
+  return requestApi<UnreadNotificationCountResponse>('/api/notifications/unread-count');
 }
 
 export function markNotificationAsRead(
   notificationId: number,
-  accessToken: string,
 ): Promise<void> {
   return requestApi<void>(
     `/api/notifications/${notificationId}/read`,
     { method: 'PATCH' },
-    accessToken,
   );
 }
 
-export function markAllNotificationsAsRead(accessToken: string): Promise<void> {
+export function markAllNotificationsAsRead(): Promise<void> {
   return requestApi<void>(
     '/api/notifications/read-all',
     { method: 'PATCH' },
-    accessToken,
   );
 }
 
 export async function connectNotificationStream(
-  accessToken: string,
   signal: AbortSignal,
   onNotification: (notification: NotificationResponse) => void,
   onConnected?: () => void,
@@ -100,9 +87,9 @@ export async function connectNotificationStream(
   const response = await fetch(`${API_BASE_URL}/api/notifications/stream`, {
     headers: {
       Accept: 'text/event-stream',
-      Authorization: `Bearer ${accessToken}`,
       'Cache-Control': 'no-cache',
     },
+    credentials: 'include',
     signal,
   });
 
