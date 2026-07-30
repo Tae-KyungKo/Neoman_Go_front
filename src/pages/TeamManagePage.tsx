@@ -15,7 +15,6 @@ import {
   type TeamMemberListResponse,
 } from '../api/teamApi';
 import { ApiError, getApiErrorMessage } from '../api/httpClient';
-import { getAccessToken } from '../auth/tokenStorage';
 import { useAuth } from '../context/AuthContext';
 import '../styles/teamShared.css';
 
@@ -33,8 +32,7 @@ export function TeamManagePage() {
   const [loadError, setLoadError] = useState<string | null>(null);
 
   useEffect(() => {
-    const accessToken = getAccessToken();
-    if (!accessToken || !Number.isInteger(numericTeamId) || numericTeamId <= 0) {
+    if (!Number.isInteger(numericTeamId) || numericTeamId <= 0) {
       setIsLoading(false);
       return;
     }
@@ -45,8 +43,8 @@ export function TeamManagePage() {
 
     Promise.all([
       getTeam(numericTeamId),
-      getTeamApplicationsForOwner(numericTeamId, accessToken),
-      getTeamMembers(numericTeamId, accessToken),
+      getTeamApplicationsForOwner(numericTeamId),
+      getTeamMembers(numericTeamId),
     ])
       .then(([teamResponse, applicationResponse, memberResponse]) => {
         if (!active) return;
@@ -100,19 +98,18 @@ export function TeamManagePage() {
     applicationId: number,
     action: 'approve' | 'reject',
   ) => {
-    const accessToken = getAccessToken();
-    if (!accessToken || processingApplicationId !== null) return;
+    if (processingApplicationId !== null) return;
 
     setProcessingApplicationId(applicationId);
     setLoadError(null);
 
     try {
       if (action === 'approve') {
-        await approveTeamApplication(applicationId, accessToken);
-        const refreshedMembers = await getTeamMembers(numericTeamId, accessToken);
+        await approveTeamApplication(applicationId);
+        const refreshedMembers = await getTeamMembers(numericTeamId);
         setMembers(refreshedMembers);
       } else {
-        await rejectTeamApplication(applicationId, accessToken);
+        await rejectTeamApplication(applicationId);
       }
       setRequests((list) =>
         list.filter((request) => request.applicationId !== applicationId),
@@ -136,14 +133,13 @@ export function TeamManagePage() {
   };
 
   const handleKick = async (teamMemberId: number) => {
-    const accessToken = getAccessToken();
-    if (!accessToken || kickingMemberId !== null) return;
+    if (kickingMemberId !== null) return;
 
     setKickingMemberId(teamMemberId);
     setLoadError(null);
 
     try {
-      await kickTeamMember(numericTeamId, teamMemberId, accessToken);
+      await kickTeamMember(numericTeamId, teamMemberId);
       setMembers((list) =>
         list.filter((member) => member.teamMemberId !== teamMemberId),
       );

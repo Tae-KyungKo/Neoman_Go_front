@@ -12,7 +12,7 @@ import {
   NotificationStreamError,
   type NotificationResponse,
 } from '../api/notificationApi';
-import { refreshAccessToken } from '../api/httpClient';
+import { ApiError, refreshAccessToken } from '../api/httpClient';
 import { useAuth } from './AuthContext';
 
 export type NotificationStreamStatus =
@@ -104,8 +104,13 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
               await refreshAccessToken();
               reconnectDelay = 1000;
               continue;
-            } catch {
-              return;
+            } catch (refreshError) {
+              if (
+                refreshError instanceof ApiError
+                && (refreshError.status === 401 || refreshError.status === 403)
+              ) {
+                return;
+              }
             }
           }
         }

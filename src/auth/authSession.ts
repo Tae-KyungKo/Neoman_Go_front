@@ -1,13 +1,11 @@
 export interface AuthSessionTokens {
   accessToken: string;
-  refreshToken?: string;
   tokenType?: string;
   accessTokenExpiresIn: number;
 }
 
 export interface AuthSessionSnapshot {
   accessToken: string;
-  refreshToken: string;
   tokenType: string;
   accessTokenExpiresAt: number | null;
   csrfToken: string;
@@ -17,7 +15,6 @@ type AuthSessionListener = (snapshot: AuthSessionSnapshot) => void;
 
 const EMPTY_SESSION: AuthSessionSnapshot = {
   accessToken: '',
-  refreshToken: '',
   tokenType: 'Bearer',
   accessTokenExpiresAt: null,
   csrfToken: '',
@@ -40,7 +37,6 @@ export function setAuthSession(tokens: AuthSessionTokens): void {
 
   currentSession = {
     accessToken: tokens.accessToken,
-    refreshToken: tokens.refreshToken ?? '',
     tokenType: tokens.tokenType || 'Bearer',
     accessTokenExpiresAt: Date.now() + tokens.accessTokenExpiresIn * 1000,
     csrfToken: currentSession.csrfToken,

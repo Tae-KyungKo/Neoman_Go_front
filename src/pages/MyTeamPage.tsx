@@ -14,7 +14,6 @@ import {
   type TeamApplicationSummaryResponse,
 } from '../api/teamApi';
 import { getApiErrorMessage } from '../api/httpClient';
-import { getAccessToken } from '../auth/tokenStorage';
 import { useAuth } from '../context/AuthContext';
 import { getCategoryByApiCode } from '../data/categories';
 import '../styles/teamShared.css';
@@ -61,17 +60,10 @@ export function MyTeamPage() {
   const [applicationError, setApplicationError] = useState<string | null>(null);
 
   const loadApplications = useCallback(async () => {
-    const accessToken = getAccessToken();
-    if (!accessToken) {
-      setIsLoadingApplications(false);
-      setApplicationError('로그인이 만료되었습니다. 다시 로그인해 주세요.');
-      return;
-    }
-
     setIsLoadingApplications(true);
     setApplicationError(null);
     try {
-      setApplications(await getMyTeamApplications(accessToken));
+      setApplications(await getMyTeamApplications());
     } catch (error) {
       setApplications([]);
       setApplicationError(getApiErrorMessage(error, '신청 현황을 불러오지 못했습니다.'));
@@ -81,16 +73,10 @@ export function MyTeamPage() {
   }, []);
 
   const loadTeams = useCallback(async () => {
-    const accessToken = getAccessToken();
-    if (!accessToken) {
-      setIsLoadingTeams(false);
-      setTeamError('로그인이 만료되었습니다. 다시 로그인해 주세요.');
-      return;
-    }
     setIsLoadingTeams(true);
     setTeamError(null);
     try {
-      setTeams(await getMyTeams(accessToken));
+      setTeams(await getMyTeams());
     } catch (error) {
       setTeams([]);
       setTeamError(getApiErrorMessage(error, '소속 팀을 불러오지 못했습니다.'));
@@ -109,14 +95,13 @@ export function MyTeamPage() {
   }
 
   const handleCancel = async (applicationId: number) => {
-    const accessToken = getAccessToken();
-    if (!accessToken || cancelingApplicationId !== null) return;
+    if (cancelingApplicationId !== null) return;
 
     setCancelingApplicationId(applicationId);
     setApplicationError(null);
 
     try {
-      const canceled = await cancelTeamApplication(applicationId, accessToken);
+      const canceled = await cancelTeamApplication(applicationId);
       setApplications((list) =>
         list.map((application) =>
           application.applicationId === applicationId
@@ -132,13 +117,12 @@ export function MyTeamPage() {
   };
 
   const handleMarkAsRead = async (applicationId: number) => {
-    const accessToken = getAccessToken();
-    if (!accessToken || readingApplicationId !== null || isMarkingAllApplications) return;
+    if (readingApplicationId !== null || isMarkingAllApplications) return;
 
     setReadingApplicationId(applicationId);
     setApplicationError(null);
     try {
-      await markTeamApplicationAsRead(applicationId, accessToken);
+      await markTeamApplicationAsRead(applicationId);
       setApplications((list) =>
         list.filter((application) => application.applicationId !== applicationId),
       );
@@ -150,13 +134,12 @@ export function MyTeamPage() {
   };
 
   const handleMarkAllAsRead = async () => {
-    const accessToken = getAccessToken();
-    if (!accessToken || isMarkingAllApplications || applications.length === 0) return;
+    if (isMarkingAllApplications || applications.length === 0) return;
 
     setIsMarkingAllApplications(true);
     setApplicationError(null);
     try {
-      await markAllTeamApplicationsAsRead(accessToken);
+      await markAllTeamApplicationsAsRead();
       setApplications([]);
     } catch (error) {
       setApplicationError(getApiErrorMessage(error, '신청 내역을 전체 읽음 처리하지 못했습니다.'));

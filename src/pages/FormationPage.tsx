@@ -12,7 +12,6 @@ import {
 } from '../api/formationApi';
 import { getTeam, type TeamDetailResponse } from '../api/teamApi';
 import { ApiError, getApiErrorMessage } from '../api/httpClient';
-import { getAccessToken } from '../auth/tokenStorage';
 import { useAuth } from '../context/AuthContext';
 import '../styles/teamShared.css';
 import './FormationPage.css';
@@ -185,19 +184,12 @@ export function FormationPage() {
     }
 
     let active = true;
-    const accessToken = getAccessToken();
     setIsLoading(true);
     setError(null);
 
-    if (!accessToken) {
-      setError('로그인이 필요합니다.');
-      setIsLoading(false);
-      return;
-    }
-
     Promise.all([
       getTeam(numericTeamId),
-      getFormation(numericTeamId, config.apiSport, accessToken),
+      getFormation(numericTeamId, config.apiSport),
     ])
       .then(([teamResponse, formationResponse]) => {
         if (!active) return;
@@ -274,8 +266,7 @@ export function FormationPage() {
   };
 
   const handleReloadLatest = async () => {
-    const accessToken = getAccessToken();
-    if (!accessToken || isReloading) return;
+    if (isReloading) return;
 
     setIsReloading(true);
     setError(null);
@@ -284,7 +275,6 @@ export function FormationPage() {
       const response = await getFormation(
         numericTeamId,
         config.apiSport,
-        accessToken,
       );
       setVersion(response.version);
       setPositions(fillFormationSlots(response.players, config));
@@ -298,8 +288,7 @@ export function FormationPage() {
   };
 
   const handleSave = async () => {
-    const accessToken = getAccessToken();
-    if (!accessToken || isSaving) return;
+    if (isSaving) return;
 
     if (
       positions.some(
@@ -325,7 +314,6 @@ export function FormationPage() {
             playerName: player.playerName.trim(),
           })),
         },
-        accessToken,
       );
       setVersion(response.version);
       setPositions(

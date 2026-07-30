@@ -68,28 +68,25 @@ export function getPost(postId: number): Promise<PostResponse> {
   return requestApi<PostResponse>(`/api/posts/${postId}`);
 }
 
-export function createPost(payload: PostPayload, accessToken: string): Promise<PostResponse> {
+export function createPost(payload: PostPayload): Promise<PostResponse> {
   return requestApi<PostResponse>(
     '/api/posts',
     { method: 'POST', body: JSON.stringify(payload) },
-    accessToken,
   );
 }
 
 export function updatePost(
   postId: number,
   payload: PostPayload,
-  accessToken: string,
 ): Promise<PostResponse> {
   return requestApi<PostResponse>(
     `/api/posts/${postId}`,
     { method: 'PATCH', body: JSON.stringify(payload) },
-    accessToken,
   );
 }
 
-export function deletePost(postId: number, accessToken: string): Promise<void> {
-  return requestApi<void>(`/api/posts/${postId}`, { method: 'DELETE' }, accessToken);
+export function deletePost(postId: number): Promise<void> {
+  return requestApi<void>(`/api/posts/${postId}`, { method: 'DELETE' });
 }
 
 export function getComments(
@@ -105,27 +102,23 @@ export function getComments(
 export function createComment(
   postId: number,
   content: string,
-  accessToken: string,
 ): Promise<CommentResponse> {
   return requestApi<CommentResponse>(
     `/api/posts/${postId}/comments`,
     { method: 'POST', body: JSON.stringify({ content }) },
-    accessToken,
   );
 }
 
 export function updateComment(
   commentId: number,
   content: string,
-  accessToken: string,
 ): Promise<CommentResponse> {
   return requestApi<CommentResponse>(
     `/api/comments/${commentId}`,
     { method: 'PATCH', body: JSON.stringify({ content }) },
-    accessToken,
   );
 }
 
-export function deleteComment(commentId: number, accessToken: string): Promise<void> {
-  return requestApi<void>(`/api/comments/${commentId}`, { method: 'DELETE' }, accessToken);
+export function deleteComment(commentId: number): Promise<void> {
+  return requestApi<void>(`/api/comments/${commentId}`, { method: 'DELETE' });
 }

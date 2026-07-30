@@ -1,8 +1,5 @@
-import type { TokenResponse } from '../api/authApi';
 import {
   clearAuthSession,
-  getAuthSession,
-  setAuthSession,
 } from './authSession';
 
 const LEGACY_TOKEN_STORAGE_KEYS = [
@@ -13,19 +10,6 @@ const LEGACY_TOKEN_STORAGE_KEYS = [
 ] as const;
 
 removeLegacyStoredTokens();
-
-export function getAccessToken(): string {
-  return getAuthSession().accessToken;
-}
-
-export function getRefreshToken(): string {
-  return getAuthSession().refreshToken;
-}
-
-export function saveTokens(tokens: TokenResponse): void {
-  setAuthSession(tokens);
-  removeLegacyStoredTokens();
-}
 
 export function clearTokens(): void {
   clearAuthSession();

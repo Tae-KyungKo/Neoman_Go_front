@@ -8,13 +8,14 @@ import {
   type WebTokenResponse,
 } from '../api/authApi';
 import { getCurrentUser, type MeResponse } from '../api/userApi';
+import { ApiError } from '../api/httpClient';
 import {
   setAuthSession,
 } from '../auth/authSession';
 import { clearTokens } from '../auth/tokenStorage';
 
 export type UserRole = 'user' | 'admin';
-export type AuthStatus = 'checking' | 'authenticated' | 'unauthenticated';
+export type AuthStatus = 'checking' | 'authenticated' | 'unauthenticated' | 'unavailable';
 
 export interface AuthUser {
   id?: number;
@@ -35,6 +36,7 @@ interface AuthContextValue {
   logout: () => Promise<void>;
   authLoading: boolean;
   authReady: boolean;
+  retrySessionRestore: () => void;
 }
 
 interface RestoredSession {
@@ -49,8 +51,11 @@ function restoreWebSession(): Promise<RestoredSession> {
   if (!initialSessionPromise) {
     initialSessionPromise = requestCsrfToken().then(async () => {
       const tokens = await requestWebRefresh();
-      const me = await getCurrentUser(tokens.accessToken);
+      setAuthSession(tokens);
+      const me = await getCurrentUser();
       return { tokens, me };
+    }).finally(() => {
+      initialSessionPromise = null;
     });
   }
   return initialSessionPromise;
@@ -79,31 +84,54 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     status: me.status,
   }), []);
 
+  const applyRestoredSession = useCallback(async () => {
+    setStatus('checking');
+    try {
+      const { tokens, me } = await restoreWebSession();
+      setAuthSession(tokens);
+      setUser(normalizeUser(me));
+      setStatus('authenticated');
+    } catch (error) {
+      clearTokens();
+      setUser(null);
+      setStatus(
+        error instanceof ApiError && (error.status === 401 || error.status === 403)
+          ? 'unauthenticated'
+          : 'unavailable',
+      );
+    }
+  }, [normalizeUser]);
+
   const logout = useCallback(async () => {
     setOperationLoading(true);
     try {
       await requestWebLogout();
-    } finally {
       clearTokens();
       setUser(null);
       setStatus('unauthenticated');
+    } finally {
       setOperationLoading(false);
     }
   }, []);
 
   const authenticate = useCallback(async (credentials: LoginCredentials): Promise<AuthUser> => {
     setOperationLoading(true);
+    let webSessionCreated = false;
 
     try {
       const tokens = await requestWebLogin(credentials);
+      webSessionCreated = true;
       setAuthSession(tokens);
 
-      const me = await getCurrentUser(tokens.accessToken);
+      const me = await getCurrentUser();
       const authenticatedUser = normalizeUser(me, credentials.loginId);
       setUser(authenticatedUser);
       setStatus('authenticated');
       return authenticatedUser;
     } catch (error) {
+      if (webSessionCreated) {
+        await requestWebLogout().catch(() => undefined);
+      }
       clearTokens();
       setUser(null);
       setStatus('unauthenticated');
@@ -114,26 +142,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [normalizeUser]);
 
   useEffect(() => {
-    let active = true;
-
-    restoreWebSession()
-      .then(({ tokens, me }) => {
-        if (!active) return;
-        setAuthSession(tokens);
-        setUser(normalizeUser(me));
-        setStatus('authenticated');
-      })
-      .catch(() => {
-        if (!active) return;
-        clearTokens();
-        setUser(null);
-        setStatus('unauthenticated');
-      });
-
-    return () => {
-      active = false;
-    };
-  }, [normalizeUser]);
+    void applyRestoredSession();
+  }, [applyRestoredSession]);
 
   useEffect(() => {
     const handleAuthExpired = () => {
@@ -161,9 +171,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         logout,
         authLoading,
         authReady,
+        retrySessionRestore: () => void applyRestoredSession(),
       }}
     >
-      {authReady ? children : null}
+      {status === 'unavailable' ? (
+        <main style={{ padding: 40, textAlign: 'center' }}>
+          <p>인증 서버에 연결할 수 없습니다.</p>
+          <button type="button" onClick={() => void applyRestoredSession()}>
+            다시 시도
+          </button>
+        </main>
+      ) : authReady ? children : null}
     </AuthContext.Provider>
   );
 }

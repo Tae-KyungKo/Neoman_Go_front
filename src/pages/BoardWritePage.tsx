@@ -6,7 +6,6 @@ import TextareaField from '../components/TextareaField';
 import Button from '../components/Button';
 import { createPost, getPost, updatePost } from '../api/postApi';
 import { getApiErrorMessage, getApiFieldErrors } from '../api/httpClient';
-import { getAccessToken } from '../auth/tokenStorage';
 import { useAuth } from '../context/AuthContext';
 import {
   BOARD_TABS,
@@ -59,8 +58,7 @@ export function BoardWritePage() {
   const isValid = title.trim().length > 0 && content.trim().length > 0;
 
   const handleSubmit = async () => {
-    const accessToken = getAccessToken();
-    if (!accessToken || !isValid || isSubmitting) return;
+    if (!isValid || isSubmitting) return;
     setIsSubmitting(true);
     setFormError(null);
     setFieldErrors({});
@@ -71,8 +69,8 @@ export function BoardWritePage() {
         content: content.trim(),
       };
       const post = isEdit
-        ? await updatePost(numericPostId, payload, accessToken)
-        : await createPost(payload, accessToken);
+        ? await updatePost(numericPostId, payload)
+        : await createPost(payload);
       navigate(`/board/${post.id}`, { replace: true });
     } catch (error) {
       const errors = getApiFieldErrors(error);

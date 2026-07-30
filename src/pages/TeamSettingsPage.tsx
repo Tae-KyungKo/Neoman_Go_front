@@ -15,7 +15,6 @@ import {
   type TeamMemberListResponse,
 } from '../api/teamApi';
 import { ApiError, getApiErrorMessage } from '../api/httpClient';
-import { getAccessToken } from '../auth/tokenStorage';
 import { useAuth } from '../context/AuthContext';
 import { getCategoryByApiCode } from '../data/categories';
 import '../styles/teamShared.css';
@@ -37,8 +36,7 @@ export function TeamSettingsPage() {
   const [team, setTeam] = useState<TeamDetailResponse | null>(null);
 
   useEffect(() => {
-    const accessToken = getAccessToken();
-    if (!accessToken || !Number.isInteger(numericTeamId) || numericTeamId <= 0) {
+    if (!Number.isInteger(numericTeamId) || numericTeamId <= 0) {
       setIsLoading(false);
       return;
     }
@@ -47,7 +45,7 @@ export function TeamSettingsPage() {
     setIsLoading(true);
     setSettingsError(null);
 
-    Promise.all([getTeam(numericTeamId), getTeamMembers(numericTeamId, accessToken)])
+    Promise.all([getTeam(numericTeamId), getTeamMembers(numericTeamId)])
       .then(([teamResponse, memberResponse]) => {
         if (active) {
           setTeam(teamResponse);
@@ -111,13 +109,12 @@ export function TeamSettingsPage() {
   };
 
   const handleDelegate = async () => {
-    const accessToken = getAccessToken();
-    if (!accessToken || selectedTeamMemberId === null || processingDialog) return;
+    if (selectedTeamMemberId === null || processingDialog) return;
 
     setProcessingDialog('delegate');
     setSettingsError(null);
     try {
-      await delegateTeamOwner(numericTeamId, selectedTeamMemberId, accessToken);
+      await delegateTeamOwner(numericTeamId, selectedTeamMemberId);
       navigate(`/teams/${team.id}`, { replace: true });
     } catch (error) {
       handleApiError(error, '팀장 권한을 위임하지 못했습니다.');
@@ -127,13 +124,12 @@ export function TeamSettingsPage() {
   };
 
   const handleClose = async () => {
-    const accessToken = getAccessToken();
-    if (!accessToken || processingDialog) return;
+    if (processingDialog) return;
 
     setProcessingDialog('close');
     setSettingsError(null);
     try {
-      await closeTeam(numericTeamId, accessToken);
+      await closeTeam(numericTeamId);
       setTeam((currentTeam) =>
         currentTeam ? { ...currentTeam, status: 'CLOSED' } : currentTeam,
       );
@@ -146,13 +142,12 @@ export function TeamSettingsPage() {
   };
 
   const handleReopen = async () => {
-    const accessToken = getAccessToken();
-    if (!accessToken || processingDialog) return;
+    if (processingDialog) return;
 
     setProcessingDialog('reopen');
     setSettingsError(null);
     try {
-      await reopenTeam(numericTeamId, accessToken);
+      await reopenTeam(numericTeamId);
       setTeam((currentTeam) =>
         currentTeam ? { ...currentTeam, status: 'RECRUITING' } : currentTeam,
       );
@@ -165,13 +160,12 @@ export function TeamSettingsPage() {
   };
 
   const handleDelete = async () => {
-    const accessToken = getAccessToken();
-    if (!accessToken || nameInput !== team.name || processingDialog) return;
+    if (nameInput !== team.name || processingDialog) return;
 
     setProcessingDialog('delete');
     setSettingsError(null);
     try {
-      await deleteTeam(numericTeamId, accessToken);
+      await deleteTeam(numericTeamId);
       navigate('/teams', { replace: true });
     } catch (error) {
       handleApiError(error, '팀을 삭제하지 못했습니다.');

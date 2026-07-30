@@ -47,6 +47,7 @@ export class ApiError extends Error {
 
 const WEB_AUTH_PATH = '/api/auth/web/';
 const CSRF_PATH = `${WEB_AUTH_PATH}csrf`;
+const REFRESH_LOCK_NAME = 'neomango:refresh-session';
 let reissuePromise: Promise<string> | null = null;
 let csrfPromise: Promise<CsrfTokenResponse> | null = null;
 
@@ -116,9 +117,9 @@ export async function refreshAccessToken(): Promise<string> {
     return reissuePromise;
   }
 
-  reissuePromise = (async () => {
+  reissuePromise = withRefreshLock(async () => {
     const csrf = await ensureCsrfToken();
-    const response = await sendRequest<WebTokenResponse>(
+    let response = await sendRequest<WebTokenResponse>(
       `${WEB_AUTH_PATH}refresh`,
       {
         method: 'POST',
@@ -127,6 +128,17 @@ export async function refreshAccessToken(): Promise<string> {
       },
     );
 
+    if (response.error?.code === 'A001') {
+      response = await sendRequest<WebTokenResponse>(
+        `${WEB_AUTH_PATH}refresh`,
+        {
+          method: 'POST',
+          credentials: 'include',
+          headers: { [csrf.headerName]: csrf.token },
+        },
+      );
+    }
+
     if (response.error) {
       throw response.error;
     }
@@ -134,7 +146,7 @@ export async function refreshAccessToken(): Promise<string> {
     const tokens = response.data as WebTokenResponse;
     setAuthSession(tokens);
     return tokens.accessToken;
-  })()
+  })
     .catch((error) => {
       if (
         error instanceof ApiError
@@ -151,17 +163,27 @@ export async function refreshAccessToken(): Promise<string> {
   return reissuePromise;
 }
 
+async function withRefreshLock<T>(operation: () => Promise<T>): Promise<T> {
+  if (
+    typeof navigator !== 'undefined'
+    && 'locks' in navigator
+    && navigator.locks
+  ) {
+    return navigator.locks.request(REFRESH_LOCK_NAME, operation);
+  }
+  return operation();
+}
+
 export async function requestApi<T>(
   path: string,
   init: RequestInit = {},
-  accessToken?: string,
 ): Promise<T> {
   const normalizedPath = normalizePath(path);
   const isWebAuthRequest = normalizedPath.startsWith(WEB_AUTH_PATH);
   const session = getAuthSession();
   let requestAccessToken = isWebAuthRequest
     ? undefined
-    : (accessToken ?? session.accessToken ?? undefined);
+    : (session.accessToken || undefined);
 
   if (
     requestAccessToken

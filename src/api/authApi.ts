@@ -9,13 +9,6 @@ export interface LoginCredentials {
   password: string;
 }
 
-export interface TokenResponse {
-  accessToken: string;
-  refreshToken: string;
-  tokenType: string;
-  accessTokenExpiresIn: number;
-}
-
 export interface WebTokenResponse {
   accessToken: string;
   tokenType: string;
@@ -40,13 +33,6 @@ export interface SignupResponse {
   nickname: string;
   role: 'USER' | 'ADMIN';
   status: string;
-}
-
-export function requestLogin(credentials: LoginCredentials): Promise<TokenResponse> {
-  return requestApi<TokenResponse>('/api/auth/login', {
-    method: 'POST',
-    body: JSON.stringify(credentials),
-  });
 }
 
 export function requestCsrfToken(): Promise<CsrfTokenResponse> {
@@ -79,14 +65,6 @@ export function requestSignup(payload: SignupPayload): Promise<SignupResponse> {
     method: 'POST',
     body: JSON.stringify(payload),
   });
-}
-
-export function requestLogout(accessToken: string): Promise<void> {
-  return requestApi<void>(
-    '/api/auth/logout',
-    { method: 'POST' },
-    accessToken,
-  );
 }
 
 export function checkLoginId(loginId: string): Promise<AvailabilityResponse> {

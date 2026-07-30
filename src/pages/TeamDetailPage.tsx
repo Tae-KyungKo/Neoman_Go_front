@@ -13,7 +13,6 @@ import {
   type TeamDetailResponse,
 } from '../api/teamApi';
 import { ApiError, getApiErrorMessage } from '../api/httpClient';
-import { getAccessToken } from '../auth/tokenStorage';
 import { getCategoryByApiCode } from '../data/categories';
 import { useAuth } from '../context/AuthContext';
 import '../styles/teamShared.css';
@@ -76,17 +75,10 @@ export function TeamDetailPage() {
       return;
     }
 
-    const accessToken = getAccessToken();
-    if (!accessToken) {
-      setHasPendingApplication(false);
-      setIsApplicationStatusLoading(false);
-      return;
-    }
-
     let active = true;
     setIsApplicationStatusLoading(true);
 
-    getMyTeamApplications(accessToken, true)
+    getMyTeamApplications(true)
       .then((applications) => {
         if (!active) return;
         setHasPendingApplication(
@@ -133,8 +125,7 @@ export function TeamDetailPage() {
       return;
     }
 
-    const accessToken = getAccessToken();
-    if (!accessToken || isApplying) {
+    if (isApplying) {
       return;
     }
 
@@ -145,7 +136,6 @@ export function TeamDetailPage() {
       const application = await createTeamApplication(
         team.id,
         { message: applyMessage.trim() || null },
-        accessToken,
       );
       setHasPendingApplication(application.status === 'PENDING');
       setApplyMessage('');
