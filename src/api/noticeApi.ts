@@ -44,7 +44,6 @@ export function getNotice(noticeId: number): Promise<NoticeResponse> {
 
 export function createNotice(
   payload: NoticePayload,
-  accessToken: string,
 ): Promise<NoticeResponse> {
   return requestApi<NoticeResponse>(
     '/api/admin/notices',
@@ -52,14 +51,12 @@ export function createNotice(
       method: 'POST',
       body: JSON.stringify(payload),
     },
-    accessToken,
   );
 }
 
 export function updateNotice(
   noticeId: number,
   payload: NoticePayload,
-  accessToken: string,
 ): Promise<NoticeResponse> {
   return requestApi<NoticeResponse>(
     `/api/admin/notices/${noticeId}`,
@@ -67,14 +64,12 @@ export function updateNotice(
       method: 'PATCH',
       body: JSON.stringify(payload),
     },
-    accessToken,
   );
 }
 
-export function deleteNotice(noticeId: number, accessToken: string): Promise<void> {
+export function deleteNotice(noticeId: number): Promise<void> {
   return requestApi<void>(
     `/api/admin/notices/${noticeId}`,
     { method: 'DELETE' },
-    accessToken,
   );
 }

@@ -12,7 +12,6 @@ import {
   type NotificationType,
 } from '../api/notificationApi';
 import { getApiErrorMessage } from '../api/httpClient';
-import { getAccessToken } from '../auth/tokenStorage';
 import { useAuth } from '../context/AuthContext';
 import { useNotifications } from '../context/NotificationContext';
 import './NotificationsPage.css';
@@ -78,17 +77,11 @@ export function NotificationsPage() {
   const [loadError, setLoadError] = useState<string | null>(null);
 
   useEffect(() => {
-    const accessToken = getAccessToken();
-    if (!accessToken) {
-      setIsLoading(false);
-      return;
-    }
-
     let active = true;
     setIsLoading(true);
     setLoadError(null);
 
-    getNotifications(page - 1, accessToken)
+    getNotifications(page - 1)
       .then((notificationPage) => {
         if (!active) return;
         setNotifications(notificationPage.content.filter((notification) => !notification.read));
@@ -137,13 +130,12 @@ export function NotificationsPage() {
   }
 
   const markAllRead = async () => {
-    const accessToken = getAccessToken();
-    if (!accessToken || isMarkingAll) return;
+    if (isMarkingAll) return;
 
     setIsMarkingAll(true);
     setLoadError(null);
     try {
-      await markAllNotificationsAsRead(accessToken);
+      await markAllNotificationsAsRead();
       setNotifications([]);
       setUnreadCount(0);
     } catch (error) {
@@ -154,11 +146,9 @@ export function NotificationsPage() {
   };
 
   const handleClick = async (notification: NotificationResponse) => {
-    const accessToken = getAccessToken();
-
-    if (!notification.read && accessToken) {
+    if (!notification.read) {
       try {
-        await markNotificationAsRead(notification.id, accessToken);
+        await markNotificationAsRead(notification.id);
         setNotifications((list) => list.filter((item) => item.id !== notification.id));
         decrementUnreadCount();
       } catch {

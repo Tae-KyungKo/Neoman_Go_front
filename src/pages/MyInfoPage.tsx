@@ -8,7 +8,6 @@ import Icon from '../components/icons/Icon';
 import { checkNickname } from '../api/authApi';
 import { updateNickname } from '../api/userApi';
 import { getApiErrorMessage, getApiFieldErrors } from '../api/httpClient';
-import { getAccessToken } from '../auth/tokenStorage';
 import { useAuth } from '../context/AuthContext';
 import { validateNickname } from '../lib/validation';
 import './MyInfoPage.css';
@@ -73,17 +72,10 @@ export function MyInfoPage() {
   };
 
   const handleUpdateNickname = async () => {
-    const accessToken = getAccessToken();
-    if (!accessToken) {
-      setNicknameChecked(false);
-      setNicknameHint('로그인이 만료되었습니다. 다시 로그인해 주세요.');
-      setNicknameHintStatus('error');
-      return;
-    }
     if (!nicknameChecked || isUpdating) return;
     setIsUpdating(true);
     try {
-      const updated = await updateNickname(nickname.trim(), accessToken);
+      const updated = await updateNickname(nickname.trim());
       updateCurrentUser({ nickname: updated.nickname, email: updated.email, status: updated.status });
       nicknameCheckSequence.current += 1;
       setNicknameOpen(false);

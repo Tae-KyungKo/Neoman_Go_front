@@ -35,20 +35,14 @@ export interface FormationSavePayload {
 export function getFormation(
   teamId: number,
   sport: FormationSport,
-  accessToken: string,
 ): Promise<FormationResponse> {
-  return requestApi<FormationResponse>(
-    `/api/teams/${teamId}/formations/${sport}`,
-    {},
-    accessToken,
-  );
+  return requestApi<FormationResponse>(`/api/teams/${teamId}/formations/${sport}`);
 }
 
 export function saveFormation(
   teamId: number,
   sport: FormationSport,
   payload: FormationSavePayload,
-  accessToken: string,
 ): Promise<FormationResponse> {
   return requestApi<FormationResponse>(
     `/api/teams/${teamId}/formations/${sport}`,
@@ -56,6 +50,5 @@ export function saveFormation(
       method: 'PUT',
       body: JSON.stringify(payload),
     },
-    accessToken,
   );
 }

@@ -11,7 +11,6 @@ import {
   type TeamMemberListResponse,
 } from '../api/teamApi';
 import { ApiError, getApiErrorMessage } from '../api/httpClient';
-import { getAccessToken } from '../auth/tokenStorage';
 import { useAuth } from '../context/AuthContext';
 import '../styles/teamShared.css';
 
@@ -29,8 +28,7 @@ export function TeamLeavePage() {
   const [loadError, setLoadError] = useState<string | null>(null);
 
   useEffect(() => {
-    const accessToken = getAccessToken();
-    if (!accessToken || !Number.isInteger(numericTeamId) || numericTeamId <= 0) {
+    if (!Number.isInteger(numericTeamId) || numericTeamId <= 0) {
       setIsLoading(false);
       return;
     }
@@ -41,7 +39,7 @@ export function TeamLeavePage() {
 
     Promise.all([
       getTeam(numericTeamId),
-      getTeamMembers(numericTeamId, accessToken),
+      getTeamMembers(numericTeamId),
     ])
       .then(([teamResponse, memberResponse]) => {
         if (active) {
@@ -96,14 +94,13 @@ export function TeamLeavePage() {
   const mustDelegateFirst = isLeader && (members.length > 1 || requiresDelegation);
 
   const handleLeave = async () => {
-    const accessToken = getAccessToken();
-    if (!accessToken || isLeaving) return;
+    if (isLeaving) return;
 
     setIsLeaving(true);
     setLoadError(null);
 
     try {
-      await leaveTeam(numericTeamId, accessToken);
+      await leaveTeam(numericTeamId);
       navigate('/mypage/teams', { replace: true });
     } catch (error) {
       setConfirmOpen(false);

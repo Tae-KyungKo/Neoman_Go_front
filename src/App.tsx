@@ -25,6 +25,7 @@ import SignupPage from './pages/SignupPage';
 import NoticeListPage from './pages/NoticeListPage';
 import NoticeDetailPage from './pages/NoticeDetailPage';
 import NotFoundPage from './pages/NotFoundPage';
+import ProtectedRoute from './components/ProtectedRoute';
 
 function App() {
   return (
@@ -35,27 +36,31 @@ function App() {
           <Route path="/" element={<HomePage />} />
           <Route path="/categories/:categoryId" element={<CategoryPage />} />
           <Route path="/teams" element={<TeamFindPage />} />
-          <Route path="/teams/new" element={<TeamCreatePage />} />
           <Route path="/teams/:teamId" element={<TeamDetailPage />} />
-          <Route path="/teams/:teamId/settings" element={<TeamSettingsPage />} />
-          <Route path="/teams/:teamId/formation/:sport" element={<FormationPage />} />
-          <Route path="/mypage" element={<Navigate to="/mypage/info" replace />} />
-          <Route path="/mypage/info" element={<MyInfoPage />} />
-          <Route path="/mypage/teams" element={<MyTeamPage />} />
-          <Route path="/mypage/notifications" element={<NotificationsPage />} />
-          <Route path="/admin" element={<AdminConsolePage />} />
-          <Route path="/admin/notices" element={<AdminNoticePage />} />
-          <Route path="/teams/:teamId/manage" element={<TeamManagePage />} />
-          <Route path="/teams/:teamId/leave" element={<TeamLeavePage />} />
           <Route path="/forbidden" element={<ForbiddenPage />} />
           <Route path="/board" element={<BoardListPage />} />
-          <Route path="/board/new" element={<BoardWritePage />} />
-          <Route path="/board/:postId/edit" element={<BoardWritePage />} />
           <Route path="/board/:postId" element={<PostDetailPage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/signup" element={<SignupPage />} />
           <Route path="/notices" element={<NoticeListPage />} />
           <Route path="/notices/:id" element={<NoticeDetailPage />} />
+          <Route element={<ProtectedRoute />}>
+            <Route path="/teams/new" element={<TeamCreatePage />} />
+            <Route path="/teams/:teamId/settings" element={<TeamSettingsPage />} />
+            <Route path="/teams/:teamId/formation/:sport" element={<FormationPage />} />
+            <Route path="/teams/:teamId/manage" element={<TeamManagePage />} />
+            <Route path="/teams/:teamId/leave" element={<TeamLeavePage />} />
+            <Route path="/mypage" element={<Navigate to="/mypage/info" replace />} />
+            <Route path="/mypage/info" element={<MyInfoPage />} />
+            <Route path="/mypage/teams" element={<MyTeamPage />} />
+            <Route path="/mypage/notifications" element={<NotificationsPage />} />
+            <Route path="/board/new" element={<BoardWritePage />} />
+            <Route path="/board/:postId/edit" element={<BoardWritePage />} />
+          </Route>
+          <Route element={<ProtectedRoute requiredRole="admin" />}>
+            <Route path="/admin" element={<AdminConsolePage />} />
+            <Route path="/admin/notices" element={<AdminNoticePage />} />
+          </Route>
           <Route path="*" element={<NotFoundPage />} />
           </Routes>
         </NotificationProvider>

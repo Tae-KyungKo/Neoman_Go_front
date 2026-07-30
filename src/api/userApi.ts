@@ -8,13 +8,12 @@ export interface MeResponse {
   status: 'ACTIVE' | 'DELETED';
 }
 
-export function getCurrentUser(accessToken: string): Promise<MeResponse> {
-  return requestApi<MeResponse>('/api/users/me', {}, accessToken);
+export function getCurrentUser(): Promise<MeResponse> {
+  return requestApi<MeResponse>('/api/users/me');
 }
 
 export function updateNickname(
   nickname: string,
-  accessToken: string,
 ): Promise<MeResponse> {
   return requestApi<MeResponse>(
     '/api/users/me/nickname',
@@ -22,6 +21,5 @@ export function updateNickname(
       method: 'PATCH',
       body: JSON.stringify({ nickname }),
     },
-    accessToken,
   );
 }

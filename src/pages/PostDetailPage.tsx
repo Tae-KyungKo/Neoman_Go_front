@@ -16,7 +16,6 @@ import {
   type PostResponse,
 } from '../api/postApi';
 import { getApiErrorMessage } from '../api/httpClient';
-import { getAccessToken } from '../auth/tokenStorage';
 import { useAuth } from '../context/AuthContext';
 import { BOARD_TAB_BY_TYPE } from '../constants/board';
 import '../styles/postShared.css';
@@ -72,12 +71,11 @@ export function PostDetailPage() {
   }, [load]);
 
   const handleCreateComment = async () => {
-    const accessToken = getAccessToken();
-    if (!accessToken || !commentInput.trim() || isSubmittingComment) return;
+    if (!commentInput.trim() || isSubmittingComment) return;
     setIsSubmittingComment(true);
     setActionError(null);
     try {
-      const comment = await createComment(numericPostId, commentInput.trim(), accessToken);
+      const comment = await createComment(numericPostId, commentInput.trim());
       setComments((items) => [...items, comment]);
       setCommentInput('');
     } catch (error) {
@@ -88,12 +86,11 @@ export function PostDetailPage() {
   };
 
   const handleUpdateComment = async (commentId: number) => {
-    const accessToken = getAccessToken();
-    if (!accessToken || !editingContent.trim() || processingCommentId !== null) return;
+    if (!editingContent.trim() || processingCommentId !== null) return;
     setProcessingCommentId(commentId);
     setActionError(null);
     try {
-      const updated = await updateComment(commentId, editingContent.trim(), accessToken);
+      const updated = await updateComment(commentId, editingContent.trim());
       setComments((items) => items.map((item) => item.id === commentId ? updated : item));
       setEditingCommentId(null);
       setEditingContent('');
@@ -105,12 +102,11 @@ export function PostDetailPage() {
   };
 
   const handleDeleteComment = async (commentId: number) => {
-    const accessToken = getAccessToken();
-    if (!accessToken || processingCommentId !== null) return;
+    if (processingCommentId !== null) return;
     setProcessingCommentId(commentId);
     setActionError(null);
     try {
-      await deleteComment(commentId, accessToken);
+      await deleteComment(commentId);
       setComments((items) => items.filter((item) => item.id !== commentId));
     } catch (error) {
       setActionError(getApiErrorMessage(error, '댓글을 삭제하지 못했습니다.'));
@@ -120,11 +116,9 @@ export function PostDetailPage() {
   };
 
   const handleDeletePost = async () => {
-    const accessToken = getAccessToken();
-    if (!accessToken) return;
     setActionError(null);
     try {
-      await deletePost(numericPostId, accessToken);
+      await deletePost(numericPostId);
       navigate('/board', { replace: true });
     } catch (error) {
       setDeleteOpen(false);
